@@ -8,9 +8,10 @@ parent = pathlib.Path(__file__).resolve().parent
 mypath = pathlib.Path(parent)
 
 # passcode is 678065
-# TODO add course codes/passwords to secrets.py
-# make a script to check if zoom.py has been changed and
-# if so copy and paste to zoom.pyw
+# TODO make functionality so that maybe through a gui
+# or some other sort of config you can import classes and
+# generate the code
+# once I can make my schedule secret I will make public
 
 
 def joinzoommeeting(info):
