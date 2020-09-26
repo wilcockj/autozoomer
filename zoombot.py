@@ -57,7 +57,7 @@ def createschedule(zoomdata):
             # if no password we have only link then regex for pass and code to make a better link
             p = re.compile("(\d{11}).*pwd=(.*)&")
             m = p.search(zoomlinks[x])
-            if m:
+            if m.group(2):
                 # creates a direct join link to zoom application
                 # another option is to be able to forgo application entirely with
                 # a link link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
@@ -75,7 +75,6 @@ def createschedule(zoomdata):
         for i in range(len(dayslist[x])):
             makeschedule(meetingnames[x], dayslist[x][i], zoomtimes[x], [
                          zoomlinks[x], zoompasses[x]])
-    print(zoomlinks)
 
 
 def getday(daynum):
