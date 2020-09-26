@@ -4,6 +4,7 @@ import schedule
 import pyautogui
 import pathlib
 import openpyxl
+import re
 from secrets import *
 from converttime import convertpsttoutc
 parent = pathlib.Path(__file__).resolve().parent
@@ -32,7 +33,6 @@ def loadexcelfile():
                 break
             else:
                 zoomdata[x - 2].append(cellvalue)
-            #print(sheet.cell(row=x, column=y).value)
     return zoomdata
 
 
@@ -49,26 +49,28 @@ def createschedule(zoomdata):
     for x in range(len(zoomdata)):
         meetingnames.append(zoomdata[x][0])
         dayslist.append([])
-        zoomlinks.append(zoomdata[x][1])
+        zoomlinks.append(zoomdata[x][1].strip())
         if zoomdata[x][2] is not None:
             zoompasses.append(zoomdata[x][2])
         else:
             zoompasses.append(-1)
+            # if no password we have only link then regex for pass and code to make a better link
+            p = re.compile("(\d{11}).*pwd=(.*)&")
+            m = p.search(zoomlinks[x])
+            if m:
+                # creates a direct join link to zoom application
+                zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
+                    m.group(1) + "&pwd=" + m.group(2)
+
         zoomtimes.append(zoomdata[x][3])
         for i in range(4, 11, 1):
             if zoomdata[x][i] is not None:
                 dayslist[x].append(getday(i))
-    '''
-    print(dayslist)
-    print(zoomlinks)
-    print(zoompasses)
-    '''
     for x in range(len(zoomdata)):
         for i in range(len(dayslist[x])):
-            makeschedule(meetingnames[x], dayslist[x][i], zoomtimes[x],
-                         [zoomlinks[x], zoompasses[x]])
-    # iterate through list in range(len(zoomdata))
-    # for zoom links need to add a check to joinzoommeeting to see if it is link or code and password format
+            makeschedule(meetingnames[x], dayslist[x][i], zoomtimes[x], [
+                         zoomlinks[x], zoompasses[x]])
+    print(zoomlinks)
 
 
 def getday(daynum):
@@ -78,7 +80,7 @@ def getday(daynum):
 
 
 def makeschedule(meetingname, day, time, zoomdata):
-
+    # something odd is going on with the time sometimes I have to convert to utc other times time is localtime by default
     if day.upper() == 'MONDAY':
         print(
             f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
@@ -111,28 +113,60 @@ def makeschedule(meetingname, day, time, zoomdata):
         print(
             f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().sunday.at(convertpsttoutc(str(time))).do(joinzoommeeting, zoomdata)
+    '''
+    if day.upper() == 'MONDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().monday.at(str(time)).do(joinzoommeeting, zoomdata)
+    elif day.upper() == 'TUESDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().tuesday.at(str(time)).do(joinzoommeeting, zoomdata)
+    elif day.upper() == 'WEDNESDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().wednesday.at(str(time)).do(joinzoommeeting, zoomdata)
+    elif day.upper() == 'THURSDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().thursday.at(str(time)).do(joinzoommeeting, zoomdata)
+    elif day.upper() == 'FRIDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().friday.at(str(time)).do(joinzoommeeting, zoomdata)
+    elif day.upper() == 'SATURDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().saturday.at(str(time)).do(joinzoommeeting, zoomdata)
+    elif day.upper() == 'SUNDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+        schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
+    '''
 
 
 def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
+    print("Trying to join meeting")
     try:
         if info[1] != -1:
-            webbrowser.open("https://oregonstate.zoom.us/j/" + str(info[0]))
+            webbrowser.open("https://www.zoom.us/j/" + str(info[0]))
             loc = pyautogui.locateCenterOnScreen(
                 str(mypath / 'passwordbox.png'))
             while loc is None:
                 loc = pyautogui.locateCenterOnScreen(
                     str(mypath / 'passwordbox.png'))
-        else:
-            webbrowser.open(info[0])
-        pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'closesymbol.png')))
-        if info[1] != -1:
+            time.sleep(1)
+            pyautogui.click(pyautogui.locateCenterOnScreen(
+                str(mypath / 'closesymbol.png')))
             pyautogui.click(loc)
             pyautogui.write(info[1])
+        else:
+            webbrowser.open(info[0])
+            time.sleep(3)
         time.sleep(3)
-        while pyautogui.locateCenterOnScreen(mypath / 'wating.png') is not None:
+        while pyautogui.locateCenterOnScreen(str(mypath / 'waiting.png')) is not None:
             time.sleep(1)
         pyautogui.click(pyautogui.locateCenterOnScreen(
             str(mypath / 'joinmeeting.png')))
