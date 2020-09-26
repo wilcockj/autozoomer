@@ -59,8 +59,13 @@ def createschedule(zoomdata):
             m = p.search(zoomlinks[x])
             if m:
                 # creates a direct join link to zoom application
+                # another option is to be able to forgo application entirely with
+                # a link link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
+                # which opens browser version of zoom
+                # could have an option but might be confusing to many
                 zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
                     m.group(1) + "&pwd=" + m.group(2)
+                #zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
 
         zoomtimes.append(zoomdata[x][3])
         for i in range(4, 11, 1):
