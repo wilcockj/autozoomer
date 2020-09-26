@@ -16,7 +16,7 @@ mypath = pathlib.Path(parent)
 # Notify user over text when they have joined a meeting and send a screenshot of desktop
 
 def loadexcelfile():
-    excelpath = mypath / 'zoom.xlsx'
+    excelpath = mypath / 'docs' / 'zoom.xlsx'
     wb = openpyxl.load_workbook(excelpath)
     sheet = wb['Sheet1']
     numofcols = sheet.max_column
@@ -44,8 +44,10 @@ def createschedule(zoomdata):
     zoomlinks = []
     zoompasses = []
     zoomtimes = []
+    meetingnames = []
     dayslist = []
     for x in range(len(zoomdata)):
+        meetingnames.append(zoomdata[x][0])
         dayslist.append([])
         zoomlinks.append(zoomdata[x][1])
         if zoomdata[x][2] is not None:
@@ -63,7 +65,7 @@ def createschedule(zoomdata):
     '''
     for x in range(len(zoomdata)):
         for i in range(len(dayslist[x])):
-            makeschedule(dayslist[x][i], zoomtimes[x],
+            makeschedule(meetingnames[x], dayslist[x][i], zoomtimes[x],
                          [zoomlinks[x], zoompasses[x]])
     # iterate through list in range(len(zoomdata))
     # for zoom links need to add a check to joinzoommeeting to see if it is link or code and password format
@@ -75,9 +77,8 @@ def getday(daynum):
     return days[daynum - 4]
 
 
-def makeschedule(day, time, zoomdata):
-    print(f"Making Schedule {day}")
-    print(str(time))
+def makeschedule(meetingname, day, time, zoomdata):
+    print(f"Setting schedule for {meetingname.upper()} on {day} at {str(time)}")
     if day.upper() == 'MONDAY':
         schedule.every().monday.at(convertpsttoutc(str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'TUESDAY':
