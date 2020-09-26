@@ -10,11 +10,10 @@ parent = pathlib.Path(__file__).resolve().parent
 mypath = pathlib.Path(parent)
 
 
-# passcode is 678065
-# TODO Check for errors in time has to be 09:53 rather than 9:53
-# convertpsttoutc should resolve these?
+# TODO
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
+# Notify user over text when they have joined a meeting and send a screenshot of desktop
 
 def loadexcelfile():
     excelpath = mypath / 'zoom.xlsx'
