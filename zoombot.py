@@ -78,7 +78,10 @@ def getday(daynum):
 
 
 def makeschedule(meetingname, day, time, zoomdata):
-    print(f"Setting schedule for {meetingname.upper()} on {day} at {str(time)}")
+    day = day.lower()
+    day = day.capitalize()
+    print(
+        f"Setting schedule for {meetingname.upper()} on {day} joining conference at {str(time)}")
     if day.upper() == 'MONDAY':
         schedule.every().monday.at(convertpsttoutc(str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'TUESDAY':
