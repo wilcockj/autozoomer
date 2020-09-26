@@ -78,27 +78,38 @@ def getday(daynum):
 
 
 def makeschedule(meetingname, day, time, zoomdata):
-    day = day.lower()
-    day = day.capitalize()
-    print(
-        f"Setting schedule for {meetingname.upper()} on {day} joining conference at {str(time)}")
+
     if day.upper() == 'MONDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().monday.at(convertpsttoutc(str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'TUESDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().tuesday.at(convertpsttoutc(
             str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'WEDNESDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().wednesday.at(convertpsttoutc(
             str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'THURSDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().thursday.at(convertpsttoutc(
             str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'FRIDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().friday.at(convertpsttoutc(str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'SATURDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().saturday.at(convertpsttoutc(
             str(time))).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'SUNDAY':
+        print(
+            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().sunday.at(convertpsttoutc(str(time))).do(joinzoommeeting, zoomdata)
 
 
