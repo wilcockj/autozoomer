@@ -84,39 +84,8 @@ def getday(daynum):
 
 
 def makeschedule(meetingname, day, time, zoomdata):
-    # something odd is going on with the time sometimes I have to convert to utc other times time is localtime by default when in utc time can have issue that
-    # the day the clock is can be ahead of what it is locally
     splittime = time.split(":")
     time = f"{splittime[0]}:{splittime[1]}"
-    if day.upper() == 'MONDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().monday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'TUESDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().tuesday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'WEDNESDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().wednesday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'THURSDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().thursday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'FRIDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().friday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'SATURDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().saturday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'SUNDAY':
-        print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)} or {convertpsttoutc(str(time))} UTC")
-        schedule.every().sunday.at(convertpsttoutc(time)).do(joinzoommeeting, zoomdata)
-    '''
     if day.upper() == 'MONDAY':
         print(
             f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
@@ -145,7 +114,6 @@ def makeschedule(meetingname, day, time, zoomdata):
         print(
             f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
-    '''
 
 
 def joinzoommeeting(info):
