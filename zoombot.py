@@ -3,10 +3,12 @@ import webbrowser
 import schedule
 import pyautogui
 import pathlib
-import openpyxl
+from openpyxl import load_workbook
 import re
-from secrets import *
-from converttime import convertpsttoutc
+import logging
+from datetime import datetime
+logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+logging.disable()
 parent = pathlib.Path(__file__).resolve().parent
 mypath = pathlib.Path(parent)
 
@@ -17,8 +19,8 @@ mypath = pathlib.Path(parent)
 # Notify user over text when they have joined a meeting and send a screenshot of desktop
 
 def loadexcelfile():
-    excelpath = mypath / 'zoom.xlsx'
-    wb = openpyxl.load_workbook(excelpath)
+    excelpath = mypath / 'docs' / 'schedule.xlsx'
+    wb = load_workbook(excelpath)
     sheet = wb['Sheet1']
     numofcols = sheet.max_column
     numofrows = sheet.max_row
@@ -60,7 +62,7 @@ def createschedule(zoomdata):
             if m.group(2):
                 # creates a direct join link to zoom application
                 # another option is to be able to forgo application entirely with
-                # a link link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
+                # link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
                 # which opens browser version of zoom
                 # could have an option but might be confusing to many
                 zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
@@ -73,8 +75,8 @@ def createschedule(zoomdata):
                 dayslist[x].append(getday(i))
     for x in range(len(zoomdata)):
         for i in range(len(dayslist[x])):
-            makeschedule(meetingnames[x], dayslist[x][i], zoomtimes[x], [
-                         zoomlinks[x], zoompasses[x]])
+            setschedule(meetingnames[x], dayslist[x][i], zoomtimes[x], [
+                zoomlinks[x], zoompasses[x]])
 
 
 def getday(daynum):
@@ -83,7 +85,7 @@ def getday(daynum):
     return days[daynum - 4]
 
 
-def makeschedule(meetingname, day, time, zoomdata):
+def setschedule(meetingname, day, time, zoomdata):
     splittime = time.split(":")
     time = f"{splittime[0]}:{splittime[1]}"
     if day.upper() == 'MONDAY':
@@ -159,6 +161,9 @@ def main():
     zoomdata = loadexcelfile()
     createschedule(zoomdata)
     while True:
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        logging.debug(f"Current Time = {current_time}")
         schedule.run_pending()
         time.sleep(1)
 
