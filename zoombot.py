@@ -17,7 +17,7 @@ mypath = pathlib.Path(parent)
 # Notify user over text when they have joined a meeting and send a screenshot of desktop
 
 def loadexcelfile():
-    excelpath = mypath / 'docs' / 'zoom.xlsx'
+    excelpath = mypath / 'zoom.xlsx'
     wb = openpyxl.load_workbook(excelpath)
     sheet = wb['Sheet1']
     numofcols = sheet.max_column
