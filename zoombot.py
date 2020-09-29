@@ -14,6 +14,7 @@ mypath = pathlib.Path(parent)
 
 
 # TODO
+# add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
 # Notify user over text when they have joined a meeting and send a screenshot of desktop
