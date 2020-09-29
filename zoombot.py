@@ -67,7 +67,7 @@ def createschedule(zoomdata):
                 # link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
                 # which opens browser version of zoom
                 # could have an option but might be confusing to many
-                if m.group(1) and m.group(2)
+                if m.group(1) and m.group(2):
                     zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
                         m.group(1) + "&pwd=" + m.group(2)
                 #zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
