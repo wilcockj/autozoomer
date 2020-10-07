@@ -175,7 +175,6 @@ def joinzoommeeting(info):
 def senddesktopscreenshot():
     if 'api_key' in globals():
         im = pyautogui.screenshot('scrshot.png')
-
         url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
         data = {'chat_id': chat_id}
         files = {'photo': open('scrshot.png', 'rb')}
@@ -192,6 +191,10 @@ def sendmessage(mymessage):
 def main():
     zoomdata = loadexcelfile()
     createschedule(zoomdata)
+    newlines = ''
+    for x in range(40):
+        newlines += "." + "\n"
+    sendmessage(newlines)
     sendmessage("Bot has started")
     while True:
         now = datetime.now()
