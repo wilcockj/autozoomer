@@ -6,7 +6,9 @@ import pathlib
 from openpyxl import load_workbook
 import re
 import logging
+import requests
 from datetime import datetime
+from secrets import *
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 logging.disable()
 parent = pathlib.Path(__file__).resolve().parent
@@ -17,7 +19,7 @@ mypath = pathlib.Path(parent)
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
 # Notify user over text when they have joined a meeting and send a screenshot of desktop
-
+# add name of class to zoomdata so can text user what class they have joined
 def loadexcelfile():
     excelpath = mypath / 'docs' / 'schedule.xlsx'
     wb = load_workbook(excelpath)
@@ -57,7 +59,7 @@ def createschedule(zoomdata):
         else:
             zoompasses.append(-1)
             # if no password we have only link then regex for pass and code to make a better link
-            #p = re.compile("(\d{11}).*pwd=(.*)&")
+            # p = re.compile("(\d{11}).*pwd=(.*)&")
             p = re.compile("(\d{10,11}).*pwd=(.{32})")
             m = p.search(zoomlinks[x])
             if m:
@@ -66,10 +68,10 @@ def createschedule(zoomdata):
                 # link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
                 # which opens browser version of zoom
                 # could have an option but might be confusing to many
-                if m.group(1) and m.group(2)
+                if m.group(1) and m.group(2):
                     zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
                         m.group(1) + "&pwd=" + m.group(2)
-                #zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
+                # zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
 
         zoomtimes.append(str(zoomdata[x][3]))
         for i in range(4, 11, 1):
@@ -77,9 +79,9 @@ def createschedule(zoomdata):
                 dayslist[x].append(getday(i))
     for x in range(len(zoomdata)):
         for i in range(len(dayslist[x])):
-            setschedule(meetingnames[x], dayslist[x][i], zoomtimes[x], [
-                zoomlinks[x], zoompasses[x]])
-    print(zoomlinks)
+            setschedule(dayslist[x][i], zoomtimes[x], [
+                zoomlinks[x], zoompasses[x], meetingnames[x]])
+    logging.debug(zoomlinks)
 
 
 def getday(daynum):
@@ -88,36 +90,36 @@ def getday(daynum):
     return days[daynum - 4]
 
 
-def setschedule(meetingname, day, time, zoomdata):
+def setschedule(day, time, zoomdata):
     splittime = time.split(":")
     time = f"{splittime[0]}:{splittime[1]}"
     if day.upper() == 'MONDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().monday.at(str(time)).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'TUESDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().tuesday.at(str(time)).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'WEDNESDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().wednesday.at(str(time)).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'THURSDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().thursday.at(str(time)).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'FRIDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().friday.at(str(time)).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'SATURDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().saturday.at(str(time)).do(joinzoommeeting, zoomdata)
     elif day.upper() == 'SUNDAY':
         print(
-            f"Setting schedule for {meetingname.upper()} on {day.capitalize()} joining conference at {str(time)}")
+            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
         schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
 
 
@@ -155,6 +157,29 @@ def joinzoommeeting(info):
         time.sleep(2)
         pyautogui.click(pyautogui.locateCenterOnScreen(
             str(mypath / 'fullscreen.png')))
+        try:
+            win = pyautogui.getWindowsWithTitle('Zoom Meeting')
+            win[0].maximize()
+            im = pyautogui.screenshot('scrshot.png')
+            if 'api_key' in globals():
+                requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
+                             params={'chat_id': {chat_id},
+                                     'text': f'You have joined your meeting: {info[2]}'})
+                url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
+                data = {'chat_id': chat_id}
+                files = {'photo': open('scrshot.png', 'rb')}
+                r = requests.post(url, files=files, data=data)
+        except IndexError:
+            im = pyautogui.screenshot('scrshot.png')
+            if 'api_key' in globals():
+                requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
+                             params={'chat_id': {chat_id},
+                                     'text': f'ERROR: may have not joined meeting: {info[2]}'})
+            url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
+            data = {'chat_id': chat_id}
+            files = {'photo': open('scrshot.png', 'rb')}
+            r = requests.post(url, files=files, data=data)
+
     except IndexError:
         pyautogui.alert("Error data is not correctly entered")
         print("The code/password is not present")
@@ -163,6 +188,10 @@ def joinzoommeeting(info):
 def main():
     zoomdata = loadexcelfile()
     createschedule(zoomdata)
+    if 'api_key' in globals():
+        requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
+                     params={'chat_id': {chat_id},
+                             'text': f'Bot has started'})
     while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
