@@ -162,10 +162,11 @@ def joinzoommeeting(info):
         try:
             win = pyautogui.getWindowsWithTitle('Zoom Meeting')
             win[0].maximize()
-            sendmessage(f'You have joined your meeting: {info[2]}')
+            sendmessage(f'\U0001F44D You have joined your meeting: {info[2]}')
             senddesktopscreenshot()
         except IndexError:
-            sendmessage(f'ERROR: may have not joined meeting: {info[2]}')
+            sendmessage(
+                f'\U00002757 ERROR: may have not joined meeting: {info[2]}')
             senddesktopscreenshot()
 
     except IndexError:
