@@ -161,38 +161,38 @@ def joinzoommeeting(info):
         try:
             win = pyautogui.getWindowsWithTitle('Zoom Meeting')
             win[0].maximize()
-            im = pyautogui.screenshot('scrshot.png')
-            if 'api_key' in globals():
-                requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
-                             params={'chat_id': {chat_id},
-                                     'text': f'You have joined your meeting: {info[2]}'})
-                url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
-                data = {'chat_id': chat_id}
-                files = {'photo': open('scrshot.png', 'rb')}
-                r = requests.post(url, files=files, data=data)
+            sendmessage(f'You have joined your meeting: {info[2]}')
+            senddesktopscreenshot()
         except IndexError:
-            im = pyautogui.screenshot('scrshot.png')
-            if 'api_key' in globals():
-                requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
-                             params={'chat_id': {chat_id},
-                                     'text': f'ERROR: may have not joined meeting: {info[2]}'})
-            url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
-            data = {'chat_id': chat_id}
-            files = {'photo': open('scrshot.png', 'rb')}
-            r = requests.post(url, files=files, data=data)
+            sendmessage(f'ERROR: may have not joined meeting: {info[2]}')
+            senddesktopscreenshot()
 
     except IndexError:
         pyautogui.alert("Error data is not correctly entered")
         print("The code/password is not present")
 
 
-def main():
-    zoomdata = loadexcelfile()
-    createschedule(zoomdata)
+def senddesktopscreenshot():
+    if 'api_key' in globals():
+        im = pyautogui.screenshot('scrshot.png')
+
+        url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
+        data = {'chat_id': chat_id}
+        files = {'photo': open('scrshot.png', 'rb')}
+        r = requests.post(url, files=files, data=data)
+
+
+def sendmessage(mymessage):
     if 'api_key' in globals():
         requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
                      params={'chat_id': {chat_id},
-                             'text': f'Bot has started'})
+                             'text': {mymessage}})
+
+
+def main():
+    zoomdata = loadexcelfile()
+    createschedule(zoomdata)
+    sendmessage("Bot has started")
     while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
