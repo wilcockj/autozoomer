@@ -128,6 +128,7 @@ def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
     print("Trying to join meeting")
+    pyautogui.hotkey('winleft', 'm')
     try:
         if info[1] != -1:
             webbrowser.open("https://www.zoom.us/j/" + str(info[0]))
