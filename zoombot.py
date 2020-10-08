@@ -159,15 +159,19 @@ def joinzoommeeting(info):
         time.sleep(2)
         pyautogui.click(pyautogui.locateCenterOnScreen(
             str(mypath / 'fullscreen.png')))
-        try:
-            win = pyautogui.getWindowsWithTitle('Zoom Meeting')
+        winlist = pyautogui.getAllTitles()
+        win = pyautogui.getWindowsWithTitle('Zoom Meeting')
+        if 'Zoom Meeting' in winlist:
             win[0].maximize()
-            sendmessage(f'\U0001F44D You have joined your meeting: {info[2]}')
-            senddesktopscreenshot()
-        except IndexError:
             sendmessage(
-                f'\U00002757 ERROR: may have not joined meeting: {info[2]}')
-            senddesktopscreenshot()
+                f'\U00002705 You have joined your meeting: {info[2]}')
+        elif 'Waiting for Host' in winlist:
+            sendmessage(
+                f'\U00002705 Waiting for host to start the meeting: {info[2]}')
+        else:
+            sendmessage(
+                f'\U0000274C ERROR: may have not joined meeting: {info[2]}')
+        senddesktopscreenshot()
 
     except IndexError:
         pyautogui.alert("Error data is not correctly entered")
