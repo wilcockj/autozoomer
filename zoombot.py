@@ -86,6 +86,12 @@ def createschedule(zoomdata):
         for i in range(len(dayslist[x])):
             setschedule(dayslist[x][i], zoomtimes[x], [
                 zoomlinks[x], zoompasses[x], meetingnames[x]])
+        splittime = zoomtimes[x].split(":")
+        time = f"{splittime[0]}:{splittime[1]}"
+        t = datetime.strptime(time, "%H:%M")
+        timevalue_12hour = t.strftime("%I:%M %p")
+        sendmessage(
+            f"Scheduling {meetingnames[x]} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} ")
     logging.debug(zoomlinks)
 
 
@@ -201,7 +207,8 @@ def sendmessage(mymessage):
 def makeconfig():
     if not os.path.exists('config.ini'):
         print("Making config file")
-        config['Telegram Info'] = {'userid': '0'}
+        config['Telegram Info'] = {'userid': '0',
+                                   'api_key': '0'}
         with open('config.ini', 'w') as configfile:
             config.write(configfile)
     else:
@@ -211,14 +218,16 @@ def makeconfig():
 def main():
     makeconfig()
     global chat_id
+    global api_key
     chat_id = config['Telegram Info']['userid']
+    api_key = config['Telegram Info']['api_key']
     zoomdata = loadexcelfile()
-    createschedule(zoomdata)
     newlines = ''
     for x in range(40):
         newlines += "." + "\n"
     sendmessage(newlines)
     sendmessage("Bot has started")
+    createschedule(zoomdata)
     while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
