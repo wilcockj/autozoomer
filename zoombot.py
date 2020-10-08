@@ -82,6 +82,7 @@ def createschedule(zoomdata):
         for i in range(4, 11, 1):
             if zoomdata[x][i] is not None:
                 dayslist[x].append(getday(i))
+    schedule_message = ""
     for x in range(len(zoomdata)):
         for i in range(len(dayslist[x])):
             setschedule(dayslist[x][i], zoomtimes[x], [
@@ -90,9 +91,9 @@ def createschedule(zoomdata):
         time = f"{splittime[0]}:{splittime[1]}"
         t = datetime.strptime(time, "%H:%M")
         timevalue_12hour = t.strftime("%I:%M %p")
-        sendmessage(
-            f"Scheduling {meetingnames[x]} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} ")
+        schedule_message += f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} " + "\n\n"
     logging.debug(zoomlinks)
+    sendmessage(schedule_message)
 
 
 def getday(daynum):
