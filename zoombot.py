@@ -3,24 +3,28 @@ import webbrowser
 import schedule
 import pyautogui
 import pathlib
+import os
 from openpyxl import load_workbook
 import re
 import logging
 import requests
+import configparser
 from datetime import datetime
 from secrets import *
 logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 logging.disable()
 parent = pathlib.Path(__file__).resolve().parent
 mypath = pathlib.Path(parent)
-
+config = configparser.ConfigParser()
 
 # TODO
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
-# Notify user over text when they have joined a meeting and send a screenshot of desktop
-# add name of class to zoomdata so can text user what class they have joined
+# add config to add telegram userid, can be found by messaging @userinfobot
+# api_key can stay in globals within secrets
+
+
 def loadexcelfile():
     excelpath = mypath / 'docs' / 'schedule.xlsx'
     wb = load_workbook(excelpath)
@@ -164,7 +168,7 @@ def joinzoommeeting(info):
         if 'Zoom Meeting' in winlist:
             win[0].maximize()
             sendmessage(
-                f'\U00002705 You have joined your meeting: {info[2]}')
+                f'\U00002705 You have successfully joined your meeting: {info[2]}')
         elif 'Waiting for Host' in winlist:
             sendmessage(
                 f'\U00002705 Waiting for host to start the meeting: {info[2]}')
@@ -183,7 +187,7 @@ def senddesktopscreenshot():
         im = pyautogui.screenshot('scrshot.png')
         url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
         data = {'chat_id': chat_id}
-        files = {'photo': open('scrshot.png', 'rb')}
+        files = {'photo': open(str(mypath / 'scrshot.png'), 'rb')}
         r = requests.post(url, files=files, data=data)
 
 
@@ -194,7 +198,21 @@ def sendmessage(mymessage):
                              'text': {mymessage}})
 
 
+def makeconfig():
+    if not os.path.exists('config.ini'):
+        print("Making config file")
+        config['Telegram Info'] = {'userid': '0'}
+        with open('config.ini', 'w') as configfile:
+            config.write(configfile)
+    else:
+        config.read('config.ini')
+
+
 def main():
+    makeconfig()
+    global chat_id
+    chat_id = config['Telegram Info']['userid']
+    print(chat_id)
     zoomdata = loadexcelfile()
     createschedule(zoomdata)
     newlines = ''
