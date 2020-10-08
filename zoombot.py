@@ -157,8 +157,6 @@ def joinzoommeeting(info):
             webbrowser.open(info[0])
             time.sleep(3)
         time.sleep(3)
-        while pyautogui.locateCenterOnScreen(str(mypath / 'waiting.png')) is not None:
-            time.sleep(1)
         pyautogui.click(pyautogui.locateCenterOnScreen(
             str(mypath / 'joinmeeting.png')))
         time.sleep(5)
@@ -175,15 +173,15 @@ def joinzoommeeting(info):
         if 'Zoom Meeting' in winlist:
             win[0].maximize()
             sendmessage(
-                f'\U00002705 You have successfully joined your meeting: {info[2]}')
+                f'\U00002705 You have successfully joined your meeting: {info[2].upper()}')
         elif 'Waiting for Host' in winlist:
             sendmessage(
-                f'\U00002705 Waiting for host to start the meeting: {info[2]}')
+                f'\U000023F3 Waiting for host to start the meeting: {info[2].upper()}')
         else:
             sendmessage(
-                f'\U0000274C ERROR: may have not joined meeting: {info[2]}')
+                f'\U0000274C ERROR: may have not joined meeting: {info[2].upper()}')
         senddesktopscreenshot()
-
+        print("Finished joining Meeting")
     except IndexError:
         pyautogui.alert("Error data is not correctly entered")
         print("The code/password is not present")
