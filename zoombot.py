@@ -212,7 +212,6 @@ def main():
     makeconfig()
     global chat_id
     chat_id = config['Telegram Info']['userid']
-    print(chat_id)
     zoomdata = loadexcelfile()
     createschedule(zoomdata)
     newlines = ''
