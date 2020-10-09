@@ -11,7 +11,7 @@ import requests
 import configparser
 from datetime import datetime
 from secrets import *
-
+from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 # Enable logging
@@ -220,8 +220,11 @@ def makeconfig():
         config.read('config.ini')
 
 
-def clickzoom(update, context):
-    update.message.reply_text('tester')
+def openzoom(update, context):
+    update.message.reply_text("Trying to Open Zoom")
+    proc = Popen(r'C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe')
+    time.sleep(3)
+    senddesktopscreenshot()
 
 
 def screenshot(update, context):
@@ -229,9 +232,9 @@ def screenshot(update, context):
 
 
 def help(update, context):
-    """Echo the user message."""
+    """send help message."""
     update.message.reply_text('''There are a few commands with this bot\nIf you type /screenshot you will be sent a picture of your desktop
-If you type /clickzoom it will click a button on your zoom app''')
+If you type /openzoom it will openzoom''')
 
 
 def main():
@@ -246,7 +249,7 @@ def main():
     dp = updater.dispatcher
 
     # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("clickzoom", clickzoom))
+    dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screenshot", screenshot))
 
     # on noncommand i.e message - echo the message on Telegram
