@@ -237,6 +237,20 @@ def help(update, context):
 If you type /openzoom it will openzoom''')
 
 
+def cs(update, context):
+    update.message.reply_text("Trying to Open cs accepter")
+    pyautogui.press('winleft')
+    time.sleep(.5)
+    pyautogui.write('accepter')
+    time.sleep(.5)
+    pyautogui.press('enter')
+    time.sleep(2)
+    d = pyautogui.getWindowsWithTitle('Counter-Strike: Global Offensive')
+    if len(d) > 0:
+        d[0].maximize()
+    senddesktopscreenshot()
+
+
 def main():
     makeconfig()
     global chat_id
@@ -251,6 +265,7 @@ def main():
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screenshot", screenshot))
+    dp.add_handler(CommandHandler("cs", cs))
 
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
