@@ -11,8 +11,14 @@ import requests
 import configparser
 from datetime import datetime
 from secrets import *
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
-logging.disable()
+
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+
+# Enable logging
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                    level=logging.INFO)
+logger = logging.getLogger(__name__)
+# logging.disable()
 parent = pathlib.Path(__file__).resolve().parent
 mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
@@ -214,12 +220,38 @@ def makeconfig():
         config.read('config.ini')
 
 
+def clickzoom(update, context):
+    update.message.reply_text('tester')
+
+
+def screenshot(update, context):
+    senddesktopscreenshot()
+
+
+def help(update, context):
+    """Echo the user message."""
+    update.message.reply_text('''There are a few commands with this bot\nIf you type /screenshot you will be sent a picture of your desktop
+If you type /clickzoom it will click a button on your zoom app''')
+
+
 def main():
     makeconfig()
     global chat_id
     global api_key
     chat_id = config['Telegram Info']['userid']
     api_key = config['Telegram Info']['api_key']
+    updater = Updater(api_key, use_context=True)
+
+    # Get the dispatcher to register handlers
+    dp = updater.dispatcher
+
+    # on different commands - answer in Telegram
+    dp.add_handler(CommandHandler("clickzoom", clickzoom))
+    dp.add_handler(CommandHandler("screenshot", screenshot))
+
+    # on noncommand i.e message - echo the message on Telegram
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
+
     zoomdata = loadexcelfile()
     newlines = ''
     for x in range(40):
@@ -227,6 +259,8 @@ def main():
     sendmessage(newlines)
     sendmessage("Bot has started")
     createschedule(zoomdata)
+    updater.start_polling()
+    updater.idle()
     while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
