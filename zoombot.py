@@ -221,35 +221,43 @@ def makeconfig():
 
 
 def openzoom(update, context):
-    update.message.reply_text("Trying to Open Zoom")
-    proc = Popen(r'C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe')
-    time.sleep(3)
-    senddesktopscreenshot()
+    if str(update.message.chat_id) == str(chat_id):
+        update.message.reply_text("Trying to Open Zoom")
+        proc = Popen(r'C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe')
+        time.sleep(3)
+        senddesktopscreenshot()
 
 
 def screenshot(update, context):
-    senddesktopscreenshot()
+    if str(update.message.chat_id) == str(chat_id):
+        senddesktopscreenshot()
 
 
 def help(update, context):
     """send help message."""
-    update.message.reply_text('''There are a few commands with this bot\nIf you type /screenshot you will be sent a picture of your desktop
+    if str(update.message.chat_id) == str(chat_id):
+        update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /openzoom it will openzoom''')
-
+    else:
+        update.message.reply_text('''Frig off hoe''')
 
 def cs(update, context):
-    update.message.reply_text("Trying to Open cs accepter")
-    pyautogui.press('winleft')
-    time.sleep(.5)
-    pyautogui.write('accepter')
-    time.sleep(.5)
-    pyautogui.press('enter')
-    time.sleep(2)
-    d = pyautogui.getWindowsWithTitle('Counter-Strike: Global Offensive')
-    if len(d) > 0:
-        d[0].maximize()
-    senddesktopscreenshot()
+    if str(update.message.chat_id) == str(chat_id):
+        update.message.reply_text("Trying to Open cs accepter")
+        pyautogui.press('winleft')
+        time.sleep(.5)
+        pyautogui.write('accepter')
+        time.sleep(.5)
+        pyautogui.press('enter')
+        time.sleep(2)
+        d = pyautogui.getWindowsWithTitle('Counter-Strike: Global Offensive')
+        if len(d) > 0:
+            d[0].maximize()
+        senddesktopscreenshot()
 
+def shutit(update,context):
+    if str(update.message.chat_id) == str(chat_id):
+        os.system(f'shutdown /s /t 0')
 
 def main():
     makeconfig()
@@ -264,9 +272,9 @@ def main():
 
     # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("openzoom", openzoom))
-    dp.add_handler(CommandHandler("screenshot", screenshot))
+    dp.add_handler(CommandHandler("screen", screenshot))
     dp.add_handler(CommandHandler("cs", cs))
-
+    #dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
 
@@ -278,7 +286,7 @@ def main():
     sendmessage("Bot has started")
     createschedule(zoomdata)
     updater.start_polling()
-    updater.idle()
+
     while True:
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
