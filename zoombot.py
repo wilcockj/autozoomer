@@ -9,6 +9,7 @@ import re
 import logging
 import requests
 import configparser
+import pyscreenshot as imggrab
 from datetime import datetime
 from secrets import *
 from subprocess import Popen, PIPE
@@ -195,7 +196,10 @@ def joinzoommeeting(info):
 
 def senddesktopscreenshot():
     if 'api_key' in globals():
-        im = pyautogui.screenshot('scrshot.png')
+        img = imggrab.grab()
+        saveas = ('scrshot.png')
+        img.save(saveas)
+        #im = pyautogui.screenshot('scrshot.png')
         url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
         data = {'chat_id': chat_id}
         files = {'photo': open(str(mypath / 'scrshot.png'), 'rb')}
@@ -239,7 +243,7 @@ def help(update, context):
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /openzoom it will openzoom''')
     else:
-        update.message.reply_text('''Frig off hoe''')
+        update.message.reply_text('''Unauthenticated User''')
 
 def cs(update, context):
     if str(update.message.chat_id) == str(chat_id):
