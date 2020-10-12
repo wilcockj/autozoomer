@@ -14,6 +14,8 @@ from datetime import datetime
 from secrets import *
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+chat_id = ''
+api_key = ''
 
 # Enable logging
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
