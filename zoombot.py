@@ -326,8 +326,9 @@ def main():
     while True:
         loc = None
         loc = pyautogui.locateCenterOnScreen(str(mypath / 'images' / 'join.png'), confidence = 0.7)
-        logging.info(loc)
+        
         if loc:
+            logging.info(loc)
             joinbreakoutroom(loc)
             
 
