@@ -37,6 +37,7 @@ class ZoomBot():
     def __init__(self):
         self.message = ""
         self.meetingdata = self.loadexcelfile()
+        self.createschedule()
 
     def sendinfo(self,unused_bot,context):
         sendmessage(self.message)
@@ -111,12 +112,12 @@ class ZoomBot():
         sendmessage(schedule_message)
         self.message = schedule_message
 
-    def getday(self,daynum):
+    def getday(self, daynum):
         days = ["MONDAY", "TUESDAY", "WEDNESDAY",
                 "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
         return days[daynum - 4]
 
-    def setschedule(self,day, time, zoomdata):
+    def setschedule(self, day, time, zoomdata):
         splittime = time.split(":")
         time = f"{splittime[0]}:{splittime[1]}"
         if day.upper() == 'MONDAY':
@@ -147,6 +148,7 @@ class ZoomBot():
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
             schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
+
 
 def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
@@ -199,9 +201,20 @@ def joinzoommeeting(info):
         pyautogui.alert("Error data is not correctly entered")
         print("The code/password is not present")
 
+def iskeypresent():
+    if 'api_key' in globals():
+        return True
+    else:
+        return False
+
+def isauthenticateduser(update):
+    if str(update.message.chat_id) == str(chat_id):
+        return True
+    else:
+        return False
 
 def senddesktopscreenshot():
-    if 'api_key' in globals():
+    if iskeypresent():
         img = imggrab.grab()
         saveas = ('scrshot.png')
         img.save(saveas)
@@ -213,7 +226,7 @@ def senddesktopscreenshot():
 
 
 def sendmessage(mymessage):
-    if 'api_key' in globals():
+    if iskeypresent():
         requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
                      params={'chat_id': {chat_id},
                              'text': {mymessage}})
@@ -231,31 +244,33 @@ def makeconfig():
 
 
 def openzoom(update, context):
-    if str(update.message.chat_id) == str(chat_id):
+    if isauthenticateduser(update):
         update.message.reply_text("Trying to Open Zoom")
         proc = Popen(r'C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe')
-        time.sleep(3)
+        time.sleep(7)
         senddesktopscreenshot()
 
 
 def screenshot(update, context):
-    if str(update.message.chat_id) == str(chat_id):
+    logging.info("Sending screenshot to telegram")
+    if isauthenticateduser(update):
         senddesktopscreenshot()
 
 
 def help(update, context):
     """send help message."""
-    if str(update.message.chat_id) == str(chat_id):
+    if isauthenticateduser(update):
         """
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /openzoom it will openzoom''')
         """
-        update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop''')
+        update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+            If you type /sch you will get the message of your schedule sent to you.''')
     else:
         update.message.reply_text('''Unauthenticated User''')
 
 def cs(update, context):
-    if str(update.message.chat_id) == str(chat_id):
+    if isauthenticateduser(update):
         update.message.reply_text("Trying to Open cs accepter")
         pyautogui.press('winleft')
         time.sleep(.5)
@@ -272,6 +287,17 @@ def shutit(update,context):
     if str(update.message.chat_id) == str(chat_id):
         os.system(f'shutdown /s /t 0')
 
+def joinbreakoutroom(loc):
+    print("Found join button")
+    pyautogui.click(loc)
+    winlist = pyautogui.getAllTitles()
+    win = pyautogui.getWindowsWithTitle('Zoom Breakout Room')
+    if 'Zoom Breakout Room' in winlist:
+        win[0].maximize()
+        sendmessage(
+            f'\U00002705 You have successfully joined your breakoutroom: {info[2].upper()}')
+    senddesktopscreenshot()    
+
 def main():
     makeconfig()
     global chat_id
@@ -282,6 +308,10 @@ def main():
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
+    newlines = ''
+    for x in range(40):
+        newlines += "." + "\n"
+    sendmessage(newlines)
     mybot = ZoomBot()
     # on different commands - answer in Telegram
     #dp.add_handler(CommandHandler("openzoom", openzoom))
@@ -291,12 +321,6 @@ def main():
     #dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
-    newlines = ''
-    for x in range(40):
-        newlines += "." + "\n"
-    sendmessage(newlines)
-    mybot.createschedule()
-    #createschedule(mybot.meetingdata,mybot)
     updater.start_polling()
 
     while True:
@@ -304,8 +328,9 @@ def main():
         loc = pyautogui.locateCenterOnScreen(str(mypath / 'images' / 'join.png'), confidence = 0.7)
         logging.info(loc)
         if loc:
-            print("Found join button")
-            pyautogui.click(loc)
+            joinbreakoutroom(loc)
+            
+
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         logging.debug(f"Current Time = {current_time}")
