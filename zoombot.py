@@ -14,12 +14,14 @@ from datetime import datetime
 from secrets import *
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-chat_id = ''
-api_key = ''
+
+chat_id = ""
+api_key = ""
 
 # Enable logging
-logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    level=logging.INFO)
+logging.basicConfig(
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s", level=logging.INFO
+)
 logger = logging.getLogger(__name__)
 # logging.disable()
 parent = pathlib.Path(__file__).resolve().parent
@@ -33,7 +35,8 @@ config = configparser.ConfigParser()
 # add config to add telegram userid, can be found by messaging @userinfobot
 # api_key can stay in globals within secrets
 
-class ZoomBot():
+
+class ZoomBot:
     def __init__(self):
         self.message = ""
         self.meetingdata = self.loadexcelfile()
@@ -41,18 +44,18 @@ class ZoomBot():
         self.createschedule()
 
     def sendlinebreaks(self):
-        newlines = ''
+        newlines = ""
         for x in range(40):
             newlines += "." + "\n"
         sendmessage(newlines)
 
-    def sendinfo(self,unused_bot,context):
+    def sendinfo(self, unused_bot, context):
         sendmessage(self.message)
 
     def loadexcelfile(self):
-        excelpath = mypath / 'docs' / 'schedule.xlsx'
+        excelpath = mypath / "docs" / "schedule.xlsx"
         wb = load_workbook(excelpath)
-        sheet = wb['Sheet1']
+        sheet = wb["Sheet1"]
         numofcols = sheet.max_column
         numofrows = sheet.max_row
         zoomdata = []
@@ -69,10 +72,10 @@ class ZoomBot():
         return zoomdata
 
     def createschedule(self):
-        #[1] is link
-        #[2] is password, prob not needed many classes have code included
-        #[3] is time
-        #[4-10] monday - sunday
+        # [1] is link
+        # [2] is password, prob not needed many classes have code included
+        # [3] is time
+        # [4-10] monday - sunday
         zoomlinks = []
         zoompasses = []
         zoomtimes = []
@@ -97,8 +100,12 @@ class ZoomBot():
                     # which opens browser version of zoom
                     # could have an option but might be confusing to many
                     if m.group(1) and m.group(2):
-                        zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
-                            m.group(1) + "&pwd=" + m.group(2)
+                        zoomlinks[x] = (
+                            "zoommtg://www.zoom.us/join?action=join&confno="
+                            + m.group(1)
+                            + "&pwd="
+                            + m.group(2)
+                        )
                     # zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
 
             zoomtimes.append(str(self.meetingdata[x][3]))
@@ -108,52 +115,72 @@ class ZoomBot():
         schedule_message = ""
         for x in range(len(self.meetingdata)):
             for i in range(len(dayslist[x])):
-                self.setschedule(dayslist[x][i], zoomtimes[x], [
-                    zoomlinks[x], zoompasses[x], meetingnames[x]])
+                self.setschedule(
+                    dayslist[x][i],
+                    zoomtimes[x],
+                    [zoomlinks[x], zoompasses[x], meetingnames[x]],
+                )
             splittime = zoomtimes[x].split(":")
             time = f"{splittime[0]}:{splittime[1]}"
             t = datetime.strptime(time, "%H:%M")
             timevalue_12hour = t.strftime("%I:%M %p")
-            schedule_message += f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} " + "\n\n"
+            schedule_message += (
+                f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} "
+                + "\n\n"
+            )
         logging.debug(zoomlinks)
         sendmessage(schedule_message)
         self.message = schedule_message
 
     def getday(self, daynum):
-        days = ["MONDAY", "TUESDAY", "WEDNESDAY",
-                "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+        days = [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY",
+        ]
         return days[daynum - 4]
 
     def setschedule(self, day, time, zoomdata):
         splittime = time.split(":")
         time = f"{splittime[0]}:{splittime[1]}"
-        if day.upper() == 'MONDAY':
+        if day.upper() == "MONDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().monday.at(str(time)).do(joinzoommeeting, zoomdata)
-        elif day.upper() == 'TUESDAY':
+        elif day.upper() == "TUESDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().tuesday.at(str(time)).do(joinzoommeeting, zoomdata)
-        elif day.upper() == 'WEDNESDAY':
+        elif day.upper() == "WEDNESDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().wednesday.at(str(time)).do(joinzoommeeting, zoomdata)
-        elif day.upper() == 'THURSDAY':
+        elif day.upper() == "THURSDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().thursday.at(str(time)).do(joinzoommeeting, zoomdata)
-        elif day.upper() == 'FRIDAY':
+        elif day.upper() == "FRIDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().friday.at(str(time)).do(joinzoommeeting, zoomdata)
-        elif day.upper() == 'SATURDAY':
+        elif day.upper() == "SATURDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().saturday.at(str(time)).do(joinzoommeeting, zoomdata)
-        elif day.upper() == 'SUNDAY':
+        elif day.upper() == "SUNDAY":
             print(
-                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
+            )
             schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
 
 
@@ -161,58 +188,72 @@ def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
     sendmessage("Trying to join meeting")
-    pyautogui.hotkey('winleft', 'm')
+    pyautogui.hotkey("winleft", "m")
     try:
         if info[1] != -1:
             webbrowser.open("https://www.zoom.us/j/" + str(info[0]))
             loc = pyautogui.locateCenterOnScreen(
-                str(mypath / 'images' / 'passwordbox.png'))
+                str(mypath / "images" / "passwordbox.png")
+            )
             while loc is None:
                 loc = pyautogui.locateCenterOnScreen(
-                    str(mypath / 'images' / 'passwordbox.png'))
+                    str(mypath / "images" / "passwordbox.png")
+                )
             time.sleep(1)
-            pyautogui.click(pyautogui.locateCenterOnScreen(
-                str(mypath / 'images' / 'closesymbol.png')))
+            pyautogui.click(
+                pyautogui.locateCenterOnScreen(
+                    str(mypath / "images" / "closesymbol.png")
+                )
+            )
             pyautogui.click(loc)
             pyautogui.write(info[1])
         else:
             webbrowser.open(info[0])
             time.sleep(3)
         time.sleep(3)
-        pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'images' / 'joinmeeting.png')))
+        pyautogui.click(
+            pyautogui.locateCenterOnScreen(str(mypath / "images" / "joinmeeting.png"))
+        )
         time.sleep(5)
-        pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'images' / 'joincomaud.png')))
+        pyautogui.click(
+            pyautogui.locateCenterOnScreen(str(mypath / "images" / "joincomaud.png"))
+        )
         time.sleep(3)
-        pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'images' / 'mute.png')))
+        pyautogui.click(
+            pyautogui.locateCenterOnScreen(str(mypath / "images" / "mute.png"))
+        )
         time.sleep(2)
-        pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'images' / 'fullscreen.png')))
+        pyautogui.click(
+            pyautogui.locateCenterOnScreen(str(mypath / "images" / "fullscreen.png"))
+        )
         winlist = pyautogui.getAllTitles()
-        win = pyautogui.getWindowsWithTitle('Zoom Meeting')
-        if 'Zoom Meeting' in winlist:
+        win = pyautogui.getWindowsWithTitle("Zoom Meeting")
+        if "Zoom Meeting" in winlist:
             win[0].maximize()
             sendmessage(
-                f'\U00002705 You have successfully joined your meeting: {info[2].upper()}')
-        elif 'Waiting for Host' in winlist:
+                f"\U00002705 You have successfully joined your meeting: {info[2].upper()}"
+            )
+        elif "Waiting for Host" in winlist:
             sendmessage(
-                f'\U000023F3 Waiting for host to start the meeting: {info[2].upper()}')
+                f"\U000023F3 Waiting for host to start the meeting: {info[2].upper()}"
+            )
         else:
             sendmessage(
-                f'\U0000274C ERROR: may have not joined meeting: {info[2].upper()}')
+                f"\U0000274C ERROR: may have not joined meeting: {info[2].upper()}"
+            )
         senddesktopscreenshot()
         print("Finished joining Meeting")
     except IndexError:
         pyautogui.alert("Error data is not correctly entered")
         print("The code/password is not present")
 
+
 def iskeypresent():
-    if 'api_key' in globals():
+    if "api_key" in globals():
         return True
     else:
         return False
+
 
 def isauthenticateduser(update):
     if str(update.message.chat_id) == str(chat_id):
@@ -220,42 +261,43 @@ def isauthenticateduser(update):
     else:
         return False
 
+
 def senddesktopscreenshot():
     if iskeypresent():
         img = imggrab.grab()
-        saveas = ('scrshot.png')
+        saveas = "scrshot.png"
         img.save(saveas)
-        #im = pyautogui.screenshot('scrshot.png')
-        url = f'https://api.telegram.org/bot{api_key}/sendPhoto'
-        data = {'chat_id': chat_id}
-        files = {'photo': open(str(mypath / 'scrshot.png'), 'rb')}
+        # im = pyautogui.screenshot('scrshot.png')
+        url = f"https://api.telegram.org/bot{api_key}/sendPhoto"
+        data = {"chat_id": chat_id}
+        files = {"photo": open(str(mypath / "scrshot.png"), "rb")}
         r = requests.post(url, files=files, data=data)
 
 
 def sendmessage(mymessage):
     if iskeypresent():
-        shortmessage = mymessage[0:10].replace('\n', ' ')
+        shortmessage = mymessage[0:10].replace("\n", " ")
         logging.info(f"Sending message: {shortmessage} ...")
-        requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
-                     params={'chat_id': {chat_id},
-                             'text': {mymessage}})
+        requests.get(
+            f"https://api.telegram.org/bot{api_key}/sendMessage",
+            params={"chat_id": {chat_id}, "text": {mymessage}},
+        )
 
 
 def makeconfig():
-    if not os.path.exists('config.ini'):
+    if not os.path.exists("config.ini"):
         print("Making config file")
-        config['Telegram Info'] = {'userid': '0',
-                                   'api_key': '0'}
-        with open('config.ini', 'w') as configfile:
+        config["Telegram Info"] = {"userid": "0", "api_key": "0"}
+        with open("config.ini", "w") as configfile:
             config.write(configfile)
     else:
-        config.read('config.ini')
+        config.read("config.ini")
 
 
 def openzoom(update, context):
     if isauthenticateduser(update):
         update.message.reply_text("Trying to Open Zoom")
-        proc = Popen(r'C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe')
+        proc = Popen(r"C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe")
         time.sleep(7)
         senddesktopscreenshot()
 
@@ -270,40 +312,45 @@ def help(update, context):
     """send help message."""
     if isauthenticateduser(update):
         """
-        update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
-If you type /openzoom it will openzoom''')
+                update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+        If you type /openzoom it will openzoom''')
         """
         """
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /sch you will get the message of your schedule sent to you.''')
         """
-        sendmessage('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
-If you type /sch you will get the message of your schedule sent to you.''')
+        sendmessage(
+            """There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+If you type /sch you will get the message of your schedule sent to you."""
+        )
     else:
         sendmessage("Unauthenticated User")
-        #update.message.reply_text('''Unauthenticated User''')
+        # update.message.reply_text('''Unauthenticated User''')
+
 
 def cs(update, context):
     if isauthenticateduser(update):
         update.message.reply_text("Trying to Open cs accepter")
-        pyautogui.press('winleft')
-        time.sleep(.5)
-        pyautogui.write('accepter')
-        time.sleep(.5)
-        pyautogui.press('enter')
+        pyautogui.press("winleft")
+        time.sleep(0.5)
+        pyautogui.write("accepter")
+        time.sleep(0.5)
+        pyautogui.press("enter")
         time.sleep(2)
-        d = pyautogui.getWindowsWithTitle('Counter-Strike: Global Offensive')
+        d = pyautogui.getWindowsWithTitle("Counter-Strike: Global Offensive")
         if len(d) > 0:
             d[0].maximize()
         senddesktopscreenshot()
 
-def shutit(update,context):
+
+def shutit(update, context):
     if isauthenticateduser(update):
-        os.system(f'shutdown /s /t 0')
+        os.system(f"shutdown /s /t 0")
+
 
 def checkbreakoutroom():
-    loc = pyautogui.locateCenterOnScreen(str(mypath / 'images' / 'join.png'))
-    
+    loc = pyautogui.locateCenterOnScreen(str(mypath / "images" / "join.png"))
+
     if loc:
         sendmessage("Trying to join breakout meeting")
         logging.info(loc)
@@ -313,7 +360,7 @@ def checkbreakoutroom():
         winlist = pyautogui.getAllTitles()
         window = ""
         win = ""
-        strings = ['Room','Breakout','breakout']
+        strings = ["Room", "Breakout", "breakout"]
         for window in winlist:
             if any(s in window for s in strings):
                 win = pyautogui.getWindowsWithTitle(window)
@@ -321,14 +368,15 @@ def checkbreakoutroom():
         if win != "":
             win[0].activate()
             win[0].maximize()
-            sendmessage(
-                f'\U00002705 You have successfully joined your breakoutroom')
-        senddesktopscreenshot() 
+            sendmessage(f"\U00002705 You have successfully joined your breakoutroom")
+        senddesktopscreenshot()
+
 
 def logcurtime():
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     logging.debug(f"Current Time = {current_time}")
+
 
 def iszoomopen():
     strings = ["Zoom Meeting"]
@@ -338,25 +386,26 @@ def iszoomopen():
             return True
     return False
 
+
 def main():
     makeconfig()
     global chat_id
     global api_key
-    chat_id = config['Telegram Info']['userid']
-    api_key = config['Telegram Info']['api_key']
+    chat_id = config["Telegram Info"]["userid"]
+    api_key = config["Telegram Info"]["api_key"]
 
     updater = Updater(api_key, use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
-    
+
     mybot = ZoomBot()
     # on different commands - answer in Telegram
-    #dp.add_handler(CommandHandler("openzoom", openzoom))
+    # dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screen", screenshot))
     dp.add_handler(CommandHandler("cs", cs))
     dp.add_handler(CommandHandler("sch", mybot.sendinfo))
-    #dp.add_handler(CommandHandler("shutdown", shutit))
+    # dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
     updater.start_polling()
@@ -369,5 +418,5 @@ def main():
         time.sleep(5)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
