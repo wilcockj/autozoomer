@@ -36,7 +36,7 @@ config = configparser.ConfigParser()
 class ZoomBot():
     def __init__(self):
         self.message = ""
-        self.meetingdata = loadexcelfile()
+        self.meetingdata = self.loadexcelfile()
 
     def sendinfo(self,unused_bot,context):
         sendmessage(self.message)
@@ -60,116 +60,93 @@ class ZoomBot():
                     zoomdata[x - 2].append(cellvalue)
         return zoomdata
 
-def loadexcelfile():
-    excelpath = mypath / 'docs' / 'schedule.xlsx'
-    wb = load_workbook(excelpath)
-    sheet = wb['Sheet1']
-    numofcols = sheet.max_column
-    numofrows = sheet.max_row
-    zoomdata = []
-    loopdata = []
-    for x in range(2, numofrows + 1):
-        if sheet.cell(row=x, column=1).value is not None:
-            zoomdata.append([])
-        for y in range(1, numofcols + 1):
-            cellvalue = sheet.cell(row=x, column=y).value
-            if y == 1 and cellvalue is None:
-                break
+    def createschedule(self):
+        #[1] is link
+        #[2] is password, prob not needed many classes have code included
+        #[3] is time
+        #[4-10] monday - sunday
+        zoomlinks = []
+        zoompasses = []
+        zoomtimes = []
+        meetingnames = []
+        dayslist = []
+        for x in range(len(self.meetingdata)):
+            meetingnames.append(self.meetingdata[x][0])
+            dayslist.append([])
+            zoomlinks.append(self.meetingdata[x][1].strip())
+            if self.meetingdata[x][2] is not None:
+                zoompasses.append(self.meetingdata[x][2])
             else:
-                zoomdata[x - 2].append(cellvalue)
-    return zoomdata
+                zoompasses.append(-1)
+                # if no password we have only link then regex for pass and code to make a better link
+                # p = re.compile("(\d{11}).*pwd=(.*)&")
+                p = re.compile("(\d{10,11}).*pwd=(.{32})")
+                m = p.search(zoomlinks[x])
+                if m:
+                    # creates a direct join link to zoom application
+                    # another option is to be able to forgo application entirely with
+                    # link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
+                    # which opens browser version of zoom
+                    # could have an option but might be confusing to many
+                    if m.group(1) and m.group(2):
+                        zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
+                            m.group(1) + "&pwd=" + m.group(2)
+                    # zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
 
+            zoomtimes.append(str(self.meetingdata[x][3]))
+            for i in range(4, 11, 1):
+                if self.meetingdata[x][i] is not None:
+                    dayslist[x].append(self.getday(i))
+        schedule_message = ""
+        for x in range(len(self.meetingdata)):
+            for i in range(len(dayslist[x])):
+                self.setschedule(dayslist[x][i], zoomtimes[x], [
+                    zoomlinks[x], zoompasses[x], meetingnames[x]])
+            splittime = zoomtimes[x].split(":")
+            time = f"{splittime[0]}:{splittime[1]}"
+            t = datetime.strptime(time, "%H:%M")
+            timevalue_12hour = t.strftime("%I:%M %p")
+            schedule_message += f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} " + "\n\n"
+        logging.debug(zoomlinks)
+        sendmessage(schedule_message)
+        self.message = schedule_message
 
-def createschedule(zoomdata,bot):
-    #[1] is link
-    #[2] is password, prob not needed many classes have code included
-    #[3] is time
-    #[4-10] monday - sunday
-    zoomlinks = []
-    zoompasses = []
-    zoomtimes = []
-    meetingnames = []
-    dayslist = []
-    for x in range(len(zoomdata)):
-        meetingnames.append(zoomdata[x][0])
-        dayslist.append([])
-        zoomlinks.append(zoomdata[x][1].strip())
-        if zoomdata[x][2] is not None:
-            zoompasses.append(zoomdata[x][2])
-        else:
-            zoompasses.append(-1)
-            # if no password we have only link then regex for pass and code to make a better link
-            # p = re.compile("(\d{11}).*pwd=(.*)&")
-            p = re.compile("(\d{10,11}).*pwd=(.{32})")
-            m = p.search(zoomlinks[x])
-            if m:
-                # creates a direct join link to zoom application
-                # another option is to be able to forgo application entirely with
-                # link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
-                # which opens browser version of zoom
-                # could have an option but might be confusing to many
-                if m.group(1) and m.group(2):
-                    zoomlinks[x] = "zoommtg://www.zoom.us/join?action=join&confno=" + \
-                        m.group(1) + "&pwd=" + m.group(2)
-                # zoomlinks[x] = "https://www.zoom.us/wc/join/" + m.group(1) + "?pwd=" + m.group(2)
+    def getday(self,daynum):
+        days = ["MONDAY", "TUESDAY", "WEDNESDAY",
+                "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
+        return days[daynum - 4]
 
-        zoomtimes.append(str(zoomdata[x][3]))
-        for i in range(4, 11, 1):
-            if zoomdata[x][i] is not None:
-                dayslist[x].append(getday(i))
-    schedule_message = ""
-    for x in range(len(zoomdata)):
-        for i in range(len(dayslist[x])):
-            setschedule(dayslist[x][i], zoomtimes[x], [
-                zoomlinks[x], zoompasses[x], meetingnames[x]])
-        splittime = zoomtimes[x].split(":")
+    def setschedule(self,day, time, zoomdata):
+        splittime = time.split(":")
         time = f"{splittime[0]}:{splittime[1]}"
-        t = datetime.strptime(time, "%H:%M")
-        timevalue_12hour = t.strftime("%I:%M %p")
-        schedule_message += f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} " + "\n\n"
-    logging.debug(zoomlinks)
-    sendmessage(schedule_message)
-    bot.message = schedule_message
-
-
-def getday(daynum):
-    days = ["MONDAY", "TUESDAY", "WEDNESDAY",
-            "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
-    return days[daynum - 4]
-
-
-def setschedule(day, time, zoomdata):
-    splittime = time.split(":")
-    time = f"{splittime[0]}:{splittime[1]}"
-    if day.upper() == 'MONDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().monday.at(str(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'TUESDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().tuesday.at(str(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'WEDNESDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().wednesday.at(str(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'THURSDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().thursday.at(str(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'FRIDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().friday.at(str(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'SATURDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().saturday.at(str(time)).do(joinzoommeeting, zoomdata)
-    elif day.upper() == 'SUNDAY':
-        print(
-            f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
-        schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
-
+        if day.upper() == 'MONDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().monday.at(str(time)).do(joinzoommeeting, zoomdata)
+        elif day.upper() == 'TUESDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().tuesday.at(str(time)).do(joinzoommeeting, zoomdata)
+        elif day.upper() == 'WEDNESDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().wednesday.at(str(time)).do(joinzoommeeting, zoomdata)
+        elif day.upper() == 'THURSDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().thursday.at(str(time)).do(joinzoommeeting, zoomdata)
+        elif day.upper() == 'FRIDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().friday.at(str(time)).do(joinzoommeeting, zoomdata)
+        elif day.upper() == 'SATURDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().saturday.at(str(time)).do(joinzoommeeting, zoomdata)
+        elif day.upper() == 'SUNDAY':
+            print(
+                f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}")
+            schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
 
 def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
@@ -318,7 +295,8 @@ def main():
     for x in range(40):
         newlines += "." + "\n"
     sendmessage(newlines)
-    createschedule(mybot.meetingdata,mybot)
+    mybot.createschedule()
+    #createschedule(mybot.meetingdata,mybot)
     updater.start_polling()
 
     while True:
