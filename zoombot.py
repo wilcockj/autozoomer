@@ -296,10 +296,9 @@ def joinbreakoutroom(loc):
     winlist = pyautogui.getAllTitles()
     window = ""
     win = ""
-    for x,win in enumerate(winlist):
-        if 'Room' in win:
-            print(x)
-            x = window
+    strings = ['Room','Breakout']
+    for win in winlist:
+        if any(s in win for s in strings):
             win = pyautogui.getWindowsWithTitle(win)
             break
     if win != "":
@@ -341,7 +340,7 @@ def main():
         if loc:
             logging.info(loc)
             joinbreakoutroom(loc)
-
+            
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         logging.debug(f"Current Time = {current_time}")
