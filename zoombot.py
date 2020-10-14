@@ -227,6 +227,8 @@ def senddesktopscreenshot():
 
 def sendmessage(mymessage):
     if iskeypresent():
+        shortmessage = mymessage[0:10].strip('\n')
+        logging.info(f"Sending message: {shortmessage} ...")
         requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
                      params={'chat_id': {chat_id},
                              'text': {mymessage}})
@@ -252,8 +254,8 @@ def openzoom(update, context):
 
 
 def screenshot(update, context):
-    logging.info("Sending screenshot to telegram")
     if isauthenticateduser(update):
+        logging.info("Sending screenshot to telegram")
         senddesktopscreenshot()
 
 
@@ -265,7 +267,7 @@ def help(update, context):
 If you type /openzoom it will openzoom''')
         """
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
-            If you type /sch you will get the message of your schedule sent to you.''')
+If you type /sch you will get the message of your schedule sent to you.''')
     else:
         update.message.reply_text('''Unauthenticated User''')
 
@@ -290,12 +292,21 @@ def shutit(update,context):
 def joinbreakoutroom(loc):
     print("Found join button")
     pyautogui.click(loc)
+    time.sleep(5)
     winlist = pyautogui.getAllTitles()
-    win = pyautogui.getWindowsWithTitle('Zoom Breakout Room')
-    if 'Zoom Breakout Room' in winlist:
+    window = ""
+    win = ""
+    for x,win in enumerate(winlist):
+        if 'Room' in win:
+            print(x)
+            x = window
+            win = pyautogui.getWindowsWithTitle(win)
+            break
+    if win != "":
+        win[0].activate()
         win[0].maximize()
         sendmessage(
-            f'\U00002705 You have successfully joined your breakoutroom: {info[2].upper()}')
+            f'\U00002705 You have successfully joined your breakoutroom')
     senddesktopscreenshot()    
 
 def main():
@@ -330,7 +341,6 @@ def main():
         if loc:
             logging.info(loc)
             joinbreakoutroom(loc)
-            
 
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
