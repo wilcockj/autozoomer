@@ -34,9 +34,9 @@ config = configparser.ConfigParser()
 # api_key can stay in globals within secrets
 
 class ZoomBot():
-    def _init_(self):
+    def __init__(self):
         self.message = ""
-        self.meetingdata = []
+        self.meetingdata = loadexcelfile()
 
     def sendinfo(self,unused_bot,context):
         sendmessage(self.message)
@@ -306,7 +306,6 @@ def main():
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
     mybot = ZoomBot()
-    mybot.meetingdata = mybot.loadexcelfile()
     # on different commands - answer in Telegram
     #dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screen", screenshot))
