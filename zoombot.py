@@ -37,7 +37,14 @@ class ZoomBot():
     def __init__(self):
         self.message = ""
         self.meetingdata = self.loadexcelfile()
+        self.sendlinebreaks()
         self.createschedule()
+
+    def sendlinebreaks(self):
+        newlines = ''
+        for x in range(40):
+            newlines += "." + "\n"
+        sendmessage(newlines)
 
     def sendinfo(self,unused_bot,context):
         sendmessage(self.message)
@@ -294,24 +301,34 @@ def shutit(update,context):
     if isauthenticateduser(update):
         os.system(f'shutdown /s /t 0')
 
-def joinbreakoutroom(loc):
-    print("Found join button")
-    pyautogui.click(loc)
-    time.sleep(5)
-    winlist = pyautogui.getAllTitles()
-    window = ""
-    win = ""
-    strings = ['Room','Breakout']
-    for win in winlist:
-        if any(s in win for s in strings):
-            win = pyautogui.getWindowsWithTitle(win)
-            break
-    if win != "":
-        win[0].activate()
-        win[0].maximize()
-        sendmessage(
-            f'\U00002705 You have successfully joined your breakoutroom')
-    senddesktopscreenshot()    
+def checkbreakoutroom():
+    loc = pyautogui.locateCenterOnScreen(str(mypath / 'images' / 'join.png'))
+    
+    if loc:
+        sendmessage("Trying to join breakout meeting")
+        logging.info(loc)
+        logging.info("Found join button")
+        pyautogui.click(loc)
+        time.sleep(5)
+        winlist = pyautogui.getAllTitles()
+        window = ""
+        win = ""
+        strings = ['Room','Breakout','breakout']
+        for window in winlist:
+            if any(s in window for s in strings):
+                win = pyautogui.getWindowsWithTitle(window)
+                break
+        if win != "":
+            win[0].activate()
+            win[0].maximize()
+            sendmessage(
+                f'\U00002705 You have successfully joined your breakoutroom')
+        senddesktopscreenshot() 
+
+def logcurtime():
+    now = datetime.now()
+    current_time = now.strftime("%H:%M:%S")
+    logging.debug(f"Current Time = {current_time}")
 
 def main():
     makeconfig()
@@ -319,14 +336,12 @@ def main():
     global api_key
     chat_id = config['Telegram Info']['userid']
     api_key = config['Telegram Info']['api_key']
+
     updater = Updater(api_key, use_context=True)
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
-    newlines = ''
-    for x in range(40):
-        newlines += "." + "\n"
-    sendmessage(newlines)
+    
     mybot = ZoomBot()
     # on different commands - answer in Telegram
     #dp.add_handler(CommandHandler("openzoom", openzoom))
@@ -339,16 +354,8 @@ def main():
     updater.start_polling()
 
     while True:
-        loc = None
-        loc = pyautogui.locateCenterOnScreen(str(mypath / 'images' / 'join.png'), confidence = 0.7)
-        
-        if loc:
-            logging.info(loc)
-            joinbreakoutroom(loc)
-
-        now = datetime.now()
-        current_time = now.strftime("%H:%M:%S")
-        logging.debug(f"Current Time = {current_time}")
+        checkbreakoutroom()
+        logcurtime()
         schedule.run_pending()
         time.sleep(5)
 
