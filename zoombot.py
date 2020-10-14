@@ -33,6 +33,32 @@ config = configparser.ConfigParser()
 # add config to add telegram userid, can be found by messaging @userinfobot
 # api_key can stay in globals within secrets
 
+class ZoomBot():
+    def _init_(self):
+        self.message = ""
+        self.meetingdata = []
+
+    def sendinfo(self,unused_bot,context):
+        sendmessage(self.message)
+
+    def loadexcelfile(self):
+        excelpath = mypath / 'docs' / 'schedule.xlsx'
+        wb = load_workbook(excelpath)
+        sheet = wb['Sheet1']
+        numofcols = sheet.max_column
+        numofrows = sheet.max_row
+        zoomdata = []
+        loopdata = []
+        for x in range(2, numofrows + 1):
+            if sheet.cell(row=x, column=1).value is not None:
+                zoomdata.append([])
+            for y in range(1, numofcols + 1):
+                cellvalue = sheet.cell(row=x, column=y).value
+                if y == 1 and cellvalue is None:
+                    break
+                else:
+                    zoomdata[x - 2].append(cellvalue)
+        return zoomdata
 
 def loadexcelfile():
     excelpath = mypath / 'docs' / 'schedule.xlsx'
@@ -54,7 +80,7 @@ def loadexcelfile():
     return zoomdata
 
 
-def createschedule(zoomdata):
+def createschedule(zoomdata,bot):
     #[1] is link
     #[2] is password, prob not needed many classes have code included
     #[3] is time
@@ -103,6 +129,7 @@ def createschedule(zoomdata):
         schedule_message += f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} " + "\n\n"
     logging.debug(zoomlinks)
     sendmessage(schedule_message)
+    bot.message = schedule_message
 
 
 def getday(daynum):
@@ -147,19 +174,19 @@ def setschedule(day, time, zoomdata):
 def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
-    print("Trying to join meeting")
+    sendmessage("Trying to join meeting")
     pyautogui.hotkey('winleft', 'm')
     try:
         if info[1] != -1:
             webbrowser.open("https://www.zoom.us/j/" + str(info[0]))
             loc = pyautogui.locateCenterOnScreen(
-                str(mypath / 'passwordbox.png'))
+                str(mypath / 'images' / 'passwordbox.png'))
             while loc is None:
                 loc = pyautogui.locateCenterOnScreen(
-                    str(mypath / 'passwordbox.png'))
+                    str(mypath / 'images' / 'passwordbox.png'))
             time.sleep(1)
             pyautogui.click(pyautogui.locateCenterOnScreen(
-                str(mypath / 'closesymbol.png')))
+                str(mypath / 'images' / 'closesymbol.png')))
             pyautogui.click(loc)
             pyautogui.write(info[1])
         else:
@@ -167,16 +194,16 @@ def joinzoommeeting(info):
             time.sleep(3)
         time.sleep(3)
         pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'joinmeeting.png')))
+            str(mypath / 'images' / 'joinmeeting.png')))
         time.sleep(5)
         pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'joincomaud.png')))
+            str(mypath / 'images' / 'joincomaud.png')))
         time.sleep(3)
         pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'mute.png')))
+            str(mypath / 'images' / 'mute.png')))
         time.sleep(2)
         pyautogui.click(pyautogui.locateCenterOnScreen(
-            str(mypath / 'fullscreen.png')))
+            str(mypath / 'images' / 'fullscreen.png')))
         winlist = pyautogui.getAllTitles()
         win = pyautogui.getWindowsWithTitle('Zoom Meeting')
         if 'Zoom Meeting' in winlist:
@@ -242,8 +269,11 @@ def screenshot(update, context):
 def help(update, context):
     """send help message."""
     if str(update.message.chat_id) == str(chat_id):
+        """
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /openzoom it will openzoom''')
+        """
+        update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop''')
     else:
         update.message.reply_text('''Unauthenticated User''')
 
@@ -275,30 +305,35 @@ def main():
 
     # Get the dispatcher to register handlers
     dp = updater.dispatcher
-
+    mybot = ZoomBot()
+    mybot.meetingdata = mybot.loadexcelfile()
     # on different commands - answer in Telegram
-    dp.add_handler(CommandHandler("openzoom", openzoom))
+    #dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screen", screenshot))
     dp.add_handler(CommandHandler("cs", cs))
+    dp.add_handler(CommandHandler("sch", mybot.sendinfo))
     #dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
-
-    zoomdata = loadexcelfile()
     newlines = ''
     for x in range(40):
         newlines += "." + "\n"
     sendmessage(newlines)
-    sendmessage("Bot has started")
-    createschedule(zoomdata)
+    createschedule(mybot.meetingdata,mybot)
     updater.start_polling()
 
     while True:
+        loc = None
+        loc = pyautogui.locateCenterOnScreen(str(mypath / 'images' / 'join.png'), confidence = 0.7)
+        logging.info(loc)
+        if loc:
+            print("Found join button")
+            pyautogui.click(loc)
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         logging.debug(f"Current Time = {current_time}")
         schedule.run_pending()
-        time.sleep(1)
+        time.sleep(5)
 
 
 if __name__ == '__main__':
