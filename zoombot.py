@@ -227,7 +227,7 @@ def senddesktopscreenshot():
 
 def sendmessage(mymessage):
     if iskeypresent():
-        shortmessage = mymessage[0:10].strip('\n')
+        shortmessage = mymessage[0:10].replace('\n', ' ')
         logging.info(f"Sending message: {shortmessage} ...")
         requests.get(f'https://api.telegram.org/bot{api_key}/sendMessage',
                      params={'chat_id': {chat_id},
@@ -266,10 +266,15 @@ def help(update, context):
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /openzoom it will openzoom''')
         """
+        """
         update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /sch you will get the message of your schedule sent to you.''')
+        """
+        sendmessage('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+If you type /sch you will get the message of your schedule sent to you.''')
     else:
-        update.message.reply_text('''Unauthenticated User''')
+        sendmessage("Unauthenticated User")
+        #update.message.reply_text('''Unauthenticated User''')
 
 def cs(update, context):
     if isauthenticateduser(update):
@@ -340,7 +345,7 @@ def main():
         if loc:
             logging.info(loc)
             joinbreakoutroom(loc)
-            
+
         now = datetime.now()
         current_time = now.strftime("%H:%M:%S")
         logging.debug(f"Current Time = {current_time}")
