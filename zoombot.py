@@ -330,6 +330,14 @@ def logcurtime():
     current_time = now.strftime("%H:%M:%S")
     logging.debug(f"Current Time = {current_time}")
 
+def iszoomopen():
+    strings = ["Zoom Meeting"]
+    winlist = pyautogui.getAllTitles()
+    for window in winlist:
+        if any(s in window for s in strings):
+            return True
+    return False
+
 def main():
     makeconfig()
     global chat_id
@@ -354,7 +362,8 @@ def main():
     updater.start_polling()
 
     while True:
-        checkbreakoutroom()
+        if iszoomopen():
+            checkbreakoutroom()
         logcurtime()
         schedule.run_pending()
         time.sleep(5)
