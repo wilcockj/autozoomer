@@ -284,7 +284,7 @@ def cs(update, context):
         senddesktopscreenshot()
 
 def shutit(update,context):
-    if str(update.message.chat_id) == str(chat_id):
+    if isauthenticateduser(update):
         os.system(f'shutdown /s /t 0')
 
 def joinbreakoutroom(loc):
