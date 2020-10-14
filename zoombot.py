@@ -11,7 +11,6 @@ import requests
 import configparser
 import pyscreenshot as imggrab
 from datetime import datetime
-from secrets import *
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -34,6 +33,7 @@ config = configparser.ConfigParser()
 # add functionality to connect a prerecorded video to the meeting
 # add config to add telegram userid, can be found by messaging @userinfobot
 # api_key can stay in globals within secrets
+# add functionality for /sch command to send a day and be sent back your schedule for that day
 
 
 class ZoomBot:
