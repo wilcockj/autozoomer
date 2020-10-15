@@ -9,7 +9,6 @@ import re
 import logging
 import requests
 import configparser
-import pyscreenshot as imggrab
 from datetime import datetime
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -31,17 +30,33 @@ config = configparser.ConfigParser()
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
-# add config to add telegram userid, can be found by messaging @userinfobot
 # api_key can stay in globals within secrets
-# add functionality for /sch command to send a day and be sent back your schedule for that day
+# add abbreviations for days in /sch {day} command
 
 
 class ZoomBot:
     def __init__(self):
         self.message = ""
         self.meetingdata = self.loadexcelfile()
+        self.meetingdays = self.meetingarray(7)
+        self.days = [
+            "MONDAY",
+            "TUESDAY",
+            "WEDNESDAY",
+            "THURSDAY",
+            "FRIDAY",
+            "SATURDAY",
+            "SUNDAY",
+        ]
         self.sendlinebreaks()
         self.createschedule()
+
+    def meetingarray(self,num):
+        cols = num
+        arr = []
+        for i in range(cols):
+            arr.append([])
+        return arr
 
     def sendlinebreaks(self):
         newlines = ""
@@ -50,8 +65,37 @@ class ZoomBot:
         sendmessage(newlines)
 
     def sendinfo(self, unused_bot, context):
-        sendmessage(self.message)
+        if len(context.args) > 0:
+            daydata = self.getdaynum(context.args[0])
+            if daydata[0] != -1:
+                dayssched = f"Your schedule for {daydata[1]} is:\n\n"
+                for x in range(len(self.meetingdays[daydata[0]])):
+                    dayssched += f"{self.meetingdays[daydata[0]][x]}"+"\n\n"
+                if dayssched != f"Your schedule for {daydata[1]} is:\n\n":
+                    sendmessage(dayssched)
+                else: 
+                    sendmessage(f"No Classes on {daydata[1]}!")
+            else:
+                sendmessage(f"{context.args[0]} is an invalid day \nYou can use {' '.join(map(lambda x:x.capitalize(),self.days))}")
+        else:
+            sendmessage(self.message)
 
+    def getdaynum(self, day):
+        day = day.upper()
+        days = [
+            ["MONDAY","MON","M"],
+            ["TUESDAY","TUES","TU"],
+            ["WEDNESDAY","WEDS","WED","W"],
+            ["THURSDAY","THURS"],
+            ["FRIDAY","FRI","F"],
+            ["SATURDAY","SAT"],
+            ["SUNDAY","SUN","SU"],
+        ]
+        for x in range(len(days)):
+            if any(day in word for word in days[x]):
+                return [x,days[x][0].capitalize()]
+        return [-1,-1]
+            
     def loadexcelfile(self):
         excelpath = mypath / "docs" / "schedule.xlsx"
         wb = load_workbook(excelpath)
@@ -70,6 +114,13 @@ class ZoomBot:
                 else:
                     zoomdata[x - 2].append(cellvalue)
         return zoomdata
+
+    def timefixer(self, mytime):
+        splittime = mytime.split(":")
+        time = f"{splittime[0]}:{splittime[1]}"
+        t = datetime.strptime(time, "%H:%M")
+        timevalue_12hour = t.strftime("%I:%M %p")
+        return timevalue_12hour
 
     def createschedule(self):
         # [1] is link
@@ -120,10 +171,7 @@ class ZoomBot:
                     zoomtimes[x],
                     [zoomlinks[x], zoompasses[x], meetingnames[x]],
                 )
-            splittime = zoomtimes[x].split(":")
-            time = f"{splittime[0]}:{splittime[1]}"
-            t = datetime.strptime(time, "%H:%M")
-            timevalue_12hour = t.strftime("%I:%M %p")
+            timevalue_12hour = self.timefixer(zoomtimes[x])
             schedule_message += (
                 f"Scheduling {meetingnames[x].upper()} meeting on {', '.join([x.capitalize() for x in dayslist[x]])} joining at {str(timevalue_12hour)} "
                 + "\n\n"
@@ -133,16 +181,7 @@ class ZoomBot:
         self.message = schedule_message
 
     def getday(self, daynum):
-        days = [
-            "MONDAY",
-            "TUESDAY",
-            "WEDNESDAY",
-            "THURSDAY",
-            "FRIDAY",
-            "SATURDAY",
-            "SUNDAY",
-        ]
-        return days[daynum - 4]
+        return self.days[daynum - 4]
 
     def setschedule(self, day, time, zoomdata):
         splittime = time.split(":")
@@ -152,42 +191,49 @@ class ZoomBot:
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().monday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[0].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
         elif day.upper() == "TUESDAY":
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().tuesday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[1].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
         elif day.upper() == "WEDNESDAY":
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().wednesday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[2].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
         elif day.upper() == "THURSDAY":
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().thursday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[3].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
         elif day.upper() == "FRIDAY":
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().friday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[4].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
         elif day.upper() == "SATURDAY":
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().saturday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[5].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
         elif day.upper() == "SUNDAY":
             print(
                 f"Setting schedule for {zoomdata[2].upper()} on {day.capitalize()} joining conference at {str(time)}"
             )
             schedule.every().sunday.at(str(time)).do(joinzoommeeting, zoomdata)
+            self.meetingdays[6].append(f"{zoomdata[2].upper()} at {str(self.timefixer(time))}")
 
 
 def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
-    sendmessage("Trying to join meeting")
+    sendmessage(f"Trying to join meeting link: {info[0]}")
     pyautogui.hotkey("winleft", "m")
     try:
         if info[1] != -1:
@@ -264,10 +310,7 @@ def isauthenticateduser(update):
 
 def senddesktopscreenshot():
     if iskeypresent():
-        img = imggrab.grab()
-        saveas = "scrshot.png"
-        img.save(saveas)
-        # im = pyautogui.screenshot('scrshot.png')
+        im = pyautogui.screenshot('scrshot.png')
         url = f"https://api.telegram.org/bot{api_key}/sendPhoto"
         data = {"chat_id": chat_id}
         files = {"photo": open(str(mypath / "scrshot.png"), "rb")}
@@ -321,7 +364,7 @@ If you type /sch you will get the message of your schedule sent to you.''')
         """
         sendmessage(
             """There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
-If you type /sch you will get the message of your schedule sent to you."""
+If you type /sch you will get the message of your schedule sent to you.\nYou can also send a day example (/sch monday) and get sent your schedule for monday"""
         )
     else:
         sendmessage("Unauthenticated User")
@@ -404,12 +447,11 @@ def main():
     # dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screen", screenshot))
     dp.add_handler(CommandHandler("cs", cs))
-    dp.add_handler(CommandHandler("sch", mybot.sendinfo))
+    dp.add_handler(CommandHandler("sch", mybot.sendinfo,pass_args = True))
     # dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
     dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
     updater.start_polling()
-
     while True:
         if iszoomopen():
             checkbreakoutroom()
