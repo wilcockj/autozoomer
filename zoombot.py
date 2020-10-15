@@ -370,6 +370,9 @@ If you type /sch you will get the message of your schedule sent to you.\nYou can
         sendmessage("Unauthenticated User")
         # update.message.reply_text('''Unauthenticated User''')
 
+def sendwebcamscr(update,context):
+    #bot.send_photo(chat_id=chat_id, photo=open('tests/test.png', 'rb'))
+    pass
 
 def cs(update, context):
     if isauthenticateduser(update):
@@ -392,18 +395,18 @@ def shutit(update, context):
 
 
 def checkbreakoutroom():
-    loc = pyautogui.locateCenterOnScreen(str(mypath / "images" / "join.png"))
+    loc = pyautogui.locateCenterOnScreen(str(mypath / "images" / "join.png"),grayscale=True)
 
     if loc:
         sendmessage("Trying to join breakout meeting")
         logging.info(loc)
         logging.info("Found join button")
         pyautogui.click(loc)
-        time.sleep(5)
+        time.sleep(7)
         winlist = pyautogui.getAllTitles()
         window = ""
         win = ""
-        strings = ["Room", "Breakout", "breakout"]
+        strings = ["Room", "Breakout", "breakout","room"]
         for window in winlist:
             if any(s in window for s in strings):
                 win = pyautogui.getWindowsWithTitle(window)
@@ -429,6 +432,27 @@ def iszoomopen():
             return True
     return False
 
+def checkforquiz():
+    buttonlist = list(pyautogui.locateAllOnScreen(str(mypath / "images" / "quizbutton.png"),grayscale = True))
+    if len(buttonlist) > 0:
+        centerbuttonlist = [pyautogui.center(button) for button in buttonlist]
+        ymin = 2000
+        highestbutton = ()
+        for x in centerbuttonlist:
+            if x.y < ymin:
+                ymin = x.y
+                highestbutton = x
+        pyautogui.click(highestbutton)
+        sendmessage("Selected poll option")
+        senddesktopscreenshot()
+        time.sleep(5)
+        loc = pyautogui.locateCenterOnScreen(str(mypath / "images" / "submitquiz.png"))
+        if loc:
+            pyautogui.click(loc)
+            sendmessage("Sent poll answer in")
+    #findallonscreen for poll button quizbutton.png
+    #press the one with the lowest y, should be highest on screen
+    pass
 
 def main():
     makeconfig()
@@ -447,6 +471,7 @@ def main():
     # dp.add_handler(CommandHandler("openzoom", openzoom))
     dp.add_handler(CommandHandler("screen", screenshot))
     dp.add_handler(CommandHandler("cs", cs))
+    dp.add_handler(CommandHandler("webcam",sendwebcamscr))
     dp.add_handler(CommandHandler("sch", mybot.sendinfo,pass_args = True))
     # dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
@@ -455,6 +480,7 @@ def main():
     while True:
         if iszoomopen():
             checkbreakoutroom()
+            checkforquiz()
         logcurtime()
         schedule.run_pending()
         time.sleep(5)
