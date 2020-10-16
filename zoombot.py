@@ -28,6 +28,8 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
+# add zoombot to seperate thread from the telegram bot to allow
+# for graceful exit
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
@@ -385,10 +387,13 @@ If you type /sch you will get the message of your schedule sent to you.\nYou can
 
 def sendwebcamscr(update, context):
     if isauthenticateduser(update):
-        cam = cv2.VideoCapture(0)
-        frame = cam.read()[1]
-        cv2.imwrite('webcam.png', frame)
-        sendphoto(str(mypath / 'webcam.png'))
+        try:
+            cam = cv2.VideoCapture(0)
+            frame = cam.read()[1]
+            cv2.imwrite('webcam.png', frame)
+            sendphoto(str(mypath / 'webcam.png'))
+        except cv2.error:
+            sendmessage("Unable to access Webcam")
 
 
 def cs(update, context):
