@@ -30,6 +30,8 @@ config = configparser.ConfigParser()
 # TODO
 # add zoombot to seperate thread from the telegram bot to allow
 # for graceful exit
+
+# look into decorator for authentcation of user
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
