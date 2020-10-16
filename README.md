@@ -10,6 +10,9 @@ First run the script once.
 
 Stop the script. 
 
-Go onto telegram message @userinfobot and copy your id into the config.ini
+Go onto telegram message @userinfobot and copy your id into the config.ini userid
 
-Once this is inputted when you start the script your telegram should get a message saying the bot has started
+Then also go on telgram and message @botfather and type /start then type /newbot choose a name then username and then copy the api
+key that you are given from this into the config.ini api_key
+
+Once these variables are inputted when you start the script your telegram should get a message saying the bot has started
