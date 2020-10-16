@@ -9,6 +9,7 @@ import re
 import logging
 import requests
 import configparser
+import cv2
 from datetime import datetime
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -307,15 +308,12 @@ def isauthenticateduser(update):
     else:
         return False
 
-
-def senddesktopscreenshot():
+def sendphoto(filepath):
     if iskeypresent():
-        im = pyautogui.screenshot('scrshot.png')
         url = f"https://api.telegram.org/bot{api_key}/sendPhoto"
         data = {"chat_id": chat_id}
-        files = {"photo": open(str(mypath / "scrshot.png"), "rb")}
+        files = {"photo": open(filepath, "rb")}
         r = requests.post(url, files=files, data=data)
-
 
 def sendmessage(mymessage):
     if iskeypresent():
@@ -348,7 +346,8 @@ def openzoom(update, context):
 def screenshot(update, context):
     if isauthenticateduser(update):
         logging.info("Sending screenshot to telegram")
-        senddesktopscreenshot()
+        im = pyautogui.screenshot('scrshot.png')
+        sendphoto(str(mypath/ "scrshot.png"))
 
 
 def help(update, context):
@@ -371,8 +370,11 @@ If you type /sch you will get the message of your schedule sent to you.\nYou can
         # update.message.reply_text('''Unauthenticated User''')
 
 def sendwebcamscr(update,context):
-    #bot.send_photo(chat_id=chat_id, photo=open('tests/test.png', 'rb'))
-    pass
+    if isauthenticateduser(update):
+        cam = cv2.VideoCapture(0)
+        frame = cam.read()[1]
+        cv2.imwrite('webcam.png', frame)
+        sendphoto(str(mypath / 'webcam.png'))
 
 def cs(update, context):
     if isauthenticateduser(update):
