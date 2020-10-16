@@ -31,7 +31,7 @@ config = configparser.ConfigParser()
 # add zoombot to seperate thread from the telegram bot to allow
 # for graceful exit
 
-# look into decorator for authentcation of user
+# look into decorator for authentication of user
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
@@ -316,12 +316,14 @@ def iskeypresent():
     else:
         return False
 
+def authenticator(func):
 
-def isauthenticateduser(update):
-    if str(update.message.chat_id) == str(chat_id):
-        return True
-    else:
-        return False
+    def helper(x, y):
+        if str(x.message.chat_id) == str(chat_id):
+            func(x, y)
+        else:
+            sendmessage("Unauthenticated user")
+    return helper
 
 
 def sendphoto(filepath):
@@ -352,70 +354,67 @@ def makeconfig():
         config.read("config.ini")
 
 
+@authenticator
 def openzoom(update, context):
-    if isauthenticateduser(update):
-        update.message.reply_text("Trying to Open Zoom")
-        proc = Popen(r"C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe")
-        time.sleep(7)
-        screenshot()
+    update.message.reply_text("Trying to Open Zoom")
+    proc = Popen(r"C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe")
+    time.sleep(7)
+    screenshot()
 
 
+@authenticator
 def screenshot(update, context):
-    if isauthenticateduser(update):
-        logging.info("Sending screenshot to telegram")
-        im = pyautogui.screenshot('scrshot.png')
-        sendphoto(str(mypath / "scrshot.png"))
+    logging.info("Sending screenshot to telegram")
+    im = pyautogui.screenshot('scrshot.png')
+    sendphoto(str(mypath / "scrshot.png"))
 
 
+@authenticator
 def sendwebcamscr(update, context):
-    if isauthenticateduser(update):
-        try:
-            cam = cv2.VideoCapture(0)
-            frame = cam.read()[1]
-            cv2.imwrite('webcam.png', frame)
-            sendphoto(str(mypath / 'webcam.png'))
-        except cv2.error:
-            sendmessage("Unable to access Webcam")
+    try:
+        cam = cv2.VideoCapture(0)
+        frame = cam.read()[1]
+        cv2.imwrite('webcam.png', frame)
+        sendphoto(str(mypath / 'webcam.png'))
+    except cv2.error:
+        sendmessage("Unable to access Webcam")
 
 
 def help(update, context):
     """send help message."""
-    if isauthenticateduser(update):
-        """
-                update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
-        If you type /openzoom it will openzoom''')
-        """
-        """
-        update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+    """
+            update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+    If you type /openzoom it will openzoom''')
+    """
+    """
+    update.message.reply_text('''There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /sch you will get the message of your schedule sent to you.''')
-        """
-        sendmessage(
-            """There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
+    """
+    sendmessage(
+        """There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
 If you type /sch you will get the message of your schedule sent to you.\nYou can also send a day example (/sch monday) and get sent your schedule for monday"""
-        )
-    else:
-        sendmessage("Unauthenticated User")
-        # update.message.reply_text('''Unauthenticated User''')
+    )
+    # update.message.reply_text('''Unauthenticated User''')
 
 
+@authenticator
 def cs(update, context):
-    if isauthenticateduser(update):
-        update.message.reply_text("Trying to Open cs accepter")
-        pyautogui.press("winleft")
-        time.sleep(0.5)
-        pyautogui.write("accepter")
-        time.sleep(0.5)
-        pyautogui.press("enter")
-        time.sleep(2)
-        d = pyautogui.getWindowsWithTitle("Counter-Strike: Global Offensive")
-        if len(d) > 0:
-            d[0].maximize()
-        screenshot()
+    update.message.reply_text("Trying to Open cs accepter")
+    pyautogui.press("winleft")
+    time.sleep(0.5)
+    pyautogui.write("accepter")
+    time.sleep(0.5)
+    pyautogui.press("enter")
+    time.sleep(2)
+    d = pyautogui.getWindowsWithTitle("Counter-Strike: Global Offensive")
+    if len(d) > 0:
+        d[0].maximize()
+    screenshot()
 
 
+@authenticator
 def shutit(update, context):
-    if isauthenticateduser(update):
-        os.system(f"shutdown /s /t 0")
+    os.system(f"shutdown /s /t 0")
 
 
 def checkbreakoutroom():
