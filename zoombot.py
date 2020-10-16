@@ -360,11 +360,22 @@ def openzoom(update, context):
         screenshot()
 
 
-def screenshot(context):
+def screenshot(update, context):
     if isauthenticateduser(update):
         logging.info("Sending screenshot to telegram")
         im = pyautogui.screenshot('scrshot.png')
-        sendphoto(update, str(mypath / "scrshot.png"))
+        sendphoto(str(mypath / "scrshot.png"))
+
+
+def sendwebcamscr(update, context):
+    if isauthenticateduser(update):
+        try:
+            cam = cv2.VideoCapture(0)
+            frame = cam.read()[1]
+            cv2.imwrite('webcam.png', frame)
+            sendphoto(str(mypath / 'webcam.png'))
+        except cv2.error:
+            sendmessage("Unable to access Webcam")
 
 
 def help(update, context):
@@ -385,17 +396,6 @@ If you type /sch you will get the message of your schedule sent to you.\nYou can
     else:
         sendmessage("Unauthenticated User")
         # update.message.reply_text('''Unauthenticated User''')
-
-
-def sendwebcamscr(update, context):
-    if isauthenticateduser(update):
-        try:
-            cam = cv2.VideoCapture(0)
-            frame = cam.read()[1]
-            cv2.imwrite('webcam.png', frame)
-            sendphoto(str(mypath / 'webcam.png'))
-        except cv2.error:
-            sendmessage("Unable to access Webcam")
 
 
 def cs(update, context):
