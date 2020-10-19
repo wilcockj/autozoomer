@@ -31,12 +31,22 @@ config = configparser.ConfigParser()
 # add zoombot to seperate thread from the telegram bot to allow
 # for graceful exit
 
-# look into decorator for authentication of user
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
-# api_key can stay in globals within secrets
 # add abbreviations for days in /sch {day} command
+
+# add option to make bot fully autonomous, needs to click button to join meeting that it is already in or leave meetings once they are finished
+def authenticator(func):
+
+    def helper(x, y):
+        if str(x.message.chat_id) == str(chat_id):
+            func(x, y)
+        else:
+            logging.info(
+                f"Unauthenticated user tried to send command, chat id ={x.message.chat_id}")
+            update.message.reply_text("Unauthenticated user")
+    return helper
 
 
 class ZoomBot:
@@ -70,7 +80,7 @@ class ZoomBot:
         sendmessage(newlines)
 
     def sendinfo(self, unused_bot, context):
-        if len(context.args) > 0:
+        if len(context.args) > 0 and str(unused_bot.message.chat_id) == str(chat_id):
             daydata = self.getdaynum(context.args[0])
             if daydata[0] != -1:
                 dayssched = f"Your schedule for {daydata[1]} is:\n\n"
@@ -246,7 +256,8 @@ class ZoomBot:
 def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
-    sendmessage(f"Trying to join meeting link: {info[0]}")
+    #[10:] gets part after zoommtg:// to get the clickable link
+    sendmessage(f"Trying to join meeting link: {info[0][10:]}")
     pyautogui.hotkey("winleft", "m")
     try:
         if info[1] != -1:
@@ -269,21 +280,25 @@ def joinzoommeeting(info):
         else:
             webbrowser.open(info[0])
             time.sleep(3)
+        if joinnewmeeting and pyautogui.locateCenterOnScreen(str(mypath / "images" / "anothermeeting.png")):
+            yes = pyautogui.locateCenterOnScreen(
+                str(mypath / "images" / "meetingyes.png"))
+            pyautogui.click(yes)
         time.sleep(3)
         pyautogui.click(
             pyautogui.locateCenterOnScreen(
                 str(mypath / "images" / "joinmeeting.png"))
         )
-        time.sleep(5)
+        time.sleep(3)
         pyautogui.click(
             pyautogui.locateCenterOnScreen(
                 str(mypath / "images" / "joincomaud.png"))
         )
-        time.sleep(3)
+        time.sleep(2)
         pyautogui.click(
             pyautogui.locateCenterOnScreen(str(mypath / "images" / "mute.png"))
         )
-        time.sleep(2)
+        time.sleep(1)
         pyautogui.click(
             pyautogui.locateCenterOnScreen(
                 str(mypath / "images" / "fullscreen.png"))
@@ -316,15 +331,6 @@ def iskeypresent():
     else:
         return False
 
-def authenticator(func):
-
-    def helper(x, y):
-        if str(x.message.chat_id) == str(chat_id):
-            func(x, y)
-        else:
-            sendmessage("Unauthenticated user")
-    return helper
-
 
 def sendphoto(filepath):
     if iskeypresent():
@@ -348,6 +354,7 @@ def makeconfig():
     if not os.path.exists("config.ini"):
         print("Making config file")
         config["Telegram Info"] = {"userid": "0", "api_key": "0"}
+        config["Options"] = {"joinnewmeeting": "False"}
         with open("config.ini", "w") as configfile:
             config.write(configfile)
     else:
@@ -362,11 +369,15 @@ def openzoom(update, context):
     screenshot()
 
 
-@authenticator
-def screenshot(update, context):
+def screenshot():
     logging.info("Sending screenshot to telegram")
     im = pyautogui.screenshot('scrshot.png')
     sendphoto(str(mypath / "scrshot.png"))
+
+
+@authenticator
+def sendscreenshot(update, context):
+    screenshot()
 
 
 @authenticator
@@ -487,9 +498,10 @@ def main():
     makeconfig()
     global chat_id
     global api_key
+    global joinnewmeeting
     chat_id = config["Telegram Info"]["userid"]
     api_key = config["Telegram Info"]["api_key"]
-
+    joinnewmeeting = config.getboolean("Options", "joinnewmeeting")
     updater = Updater(api_key, use_context=True)
 
     # Get the dispatcher to register handlers
@@ -498,7 +510,7 @@ def main():
     mybot = ZoomBot()
     # on different commands - answer in Telegram
     # dp.add_handler(CommandHandler("openzoom", openzoom))
-    dp.add_handler(CommandHandler("screen", screenshot))
+    dp.add_handler(CommandHandler("screen", sendscreenshot))
     dp.add_handler(CommandHandler("cs", cs))
     dp.add_handler(CommandHandler("webcam", sendwebcamscr))
     dp.add_handler(CommandHandler("sch", mybot.sendinfo, pass_args=True))
