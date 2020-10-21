@@ -269,8 +269,10 @@ def joinzoommeeting(info):
         # which opens browser version of zoom
         # could have an option but might be confusing to many
         if m.group(1) and m.group(2):
-            sendmessage(
-                f"Conference number {m.group(1)} and password = {m.group(2)}")
+            sendmessage(f"Conference number:")
+            sendmessage(f'{m.group(1)}')
+            sendmessage(f'Password:')
+            sendmessage(f'{m.group(2)}')
     pyautogui.hotkey("winleft", "m")
     try:
         if info[1] != -1:
@@ -374,7 +376,7 @@ def makeconfig():
         config.read("config.ini")
 
 
-@authenticator
+@ authenticator
 def openzoom(update, context):
     update.message.reply_text("Trying to Open Zoom")
     proc = Popen(r"C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe")
@@ -388,12 +390,12 @@ def screenshot():
     sendphoto(str(mypath / "scrshot.png"))
 
 
-@authenticator
+@ authenticator
 def sendscreenshot(update, context):
     screenshot()
 
 
-@authenticator
+@ authenticator
 def sendwebcamscr(update, context):
     try:
         cam = cv2.VideoCapture(0)
@@ -421,7 +423,7 @@ If you type /sch you will get the message of your schedule sent to you.\nYou can
     # update.message.reply_text('''Unauthenticated User''')
 
 
-@authenticator
+@ authenticator
 def cs(update, context):
     update.message.reply_text("Trying to Open cs accepter")
     pyautogui.press("winleft")
@@ -436,14 +438,14 @@ def cs(update, context):
     screenshot()
 
 
-@authenticator
+@ authenticator
 def shutit(update, context):
     os.system(f"shutdown /s /t 0")
 
 
 def checkbreakoutroom():
     loc = pyautogui.locateCenterOnScreen(
-        str(mypath / "images" / "join.png"))
+        str(mypath / "images" / "join.png"), confidence=0.6)
     if loc:
         sendmessage("Trying to join breakout meeting")
         logging.info(loc)
