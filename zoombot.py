@@ -257,7 +257,20 @@ def joinzoommeeting(info):
     # info[0] classcode info [1] password if there is one
     # print(info[0],info[1])
     #[10:] gets part after zoommtg:// to get the clickable link
+    # need to send just password and conference number
+
     sendmessage(f"Trying to join meeting link: {info[0][10:]}")
+    p = re.compile("(\d{10,11}).*pwd=(.{32})")
+    m = p.search(info[0][10:])
+    if m:
+        # creates a direct join link to zoom application
+        # another option is to be able to forgo application entirely with
+        # link this https://www.zoom.us/wc/join/94165984842?pwd=ME1OemMrdHdUSElGaXdobkN4Z2NzQT09
+        # which opens browser version of zoom
+        # could have an option but might be confusing to many
+        if m.group(1) and m.group(2):
+            sendmessage(
+                f"Conference number {m.group(1)} and password = {m.group(2)}")
     pyautogui.hotkey("winleft", "m")
     try:
         if info[1] != -1:
@@ -305,7 +318,7 @@ def joinzoommeeting(info):
         )
         winlist = pyautogui.getAllTitles()
         win = pyautogui.getWindowsWithTitle("Zoom Meeting")
-        if "Zoom Meeting" in winlist:
+        if iszoomopen():
             win[0].maximize()
             sendmessage(
                 f"\U00002705 You have successfully joined your meeting: {info[2].upper()}"
@@ -430,8 +443,7 @@ def shutit(update, context):
 
 def checkbreakoutroom():
     loc = pyautogui.locateCenterOnScreen(
-        str(mypath / "images" / "join.png"), grayscale=True)
-
+        str(mypath / "images" / "join.png"))
     if loc:
         sendmessage("Trying to join breakout meeting")
         logging.info(loc)
@@ -451,6 +463,7 @@ def checkbreakoutroom():
             win[0].maximize()
             sendmessage(
                 f"\U00002705 You have successfully joined your breakoutroom")
+            time.sleep(1)
         screenshot()
 
 
@@ -458,6 +471,8 @@ def logcurtime():
     now = datetime.now()
     current_time = now.strftime("%H:%M:%S")
     logging.debug(f"Current Time = {current_time}")
+
+# need to find better way to check if zoom open
 
 
 def iszoomopen():
