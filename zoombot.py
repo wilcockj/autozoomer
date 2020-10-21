@@ -29,7 +29,6 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
-# allow user to use program without telegram bot
 # should be able to get away with this as sendmessage function looks to see if it has api/chat key
 # same with sendphoto, need to only run bot specific commands if api key is present
 # add zoombot to seperate thread from the telegram bot to allow
@@ -450,6 +449,7 @@ def shutit(update, context):
     os.system(f"shutdown /s /t 0")
 
 
+@ authenticator
 def workout(update, context):
 
     workouts = ["Justin Workout", "Coco Workout", "8 Minute Abs"]
@@ -537,7 +537,8 @@ def main():
                         title='Config Must be Filled out', button='OK')
     # if config has not been filled out pop up message box and tell user
     # what needs to be filled out
-    elif iskeypresent():
+    mybot = ZoomBot()
+    if iskeypresent():
         updater = Updater(api_key, use_context=True)
 
         # Get the dispatcher to register handlers
@@ -554,7 +555,7 @@ def main():
         # on noncommand i.e message - echo the message on Telegram
         dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
         updater.start_polling()
-    mybot = ZoomBot()
+
     while True:
         if iszoomopen():
             checkbreakoutroom()
