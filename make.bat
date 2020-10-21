@@ -19,7 +19,6 @@ pyinstaller --onefile zoombot.py --noconsole --exclude-module matplotlib ^
                            --exclude-module sympy ^
                            --exclude-module kivy ^
                            --exclude-module pyramid ^
-                           --exclude-module opencv ^
                            --exclude-module tensorflow ^
                            --exclude-module pipenv ^
                            --exclude-module pattern ^
@@ -39,5 +38,4 @@ pyinstaller --onefile zoombot.py --noconsole --exclude-module matplotlib ^
                            --exclude-module pilkit ^
                            --exclude-module wrapt ^
                            --exclude-module astroid ^
-                           --exclude-module cv2 ^
                            --exclude-module isort

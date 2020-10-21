@@ -532,12 +532,16 @@ def main():
     chat_id = config["Telegram Info"]["userid"]
     api_key = config["Telegram Info"]["api_key"]
     joinnewmeeting = config.getboolean("Options", "joinnewmeeting")
+
     if str(0) in {chat_id, api_key}:
-        pyautogui.alert(text='The chat_id and api_key has not been filled out, please fill out the config.ini as described in the README.\nThen reopen the program',
-                        title='Config Must be Filled out', button='OK')
+        # pyautogui.alert(text='The chat_id and api_key has not been filled out, please fill out the config.ini as described in the README.\nThen reopen the program',
+        #                title='Config Must be Filled out', button='OK')
+        print('The chat_id and api_key has not been filled out, please fill out the config.ini as described in the README.\nThen reopen the program\n')
+
     # if config has not been filled out pop up message box and tell user
     # what needs to be filled out
     mybot = ZoomBot()
+
     if iskeypresent():
         updater = Updater(api_key, use_context=True)
 
