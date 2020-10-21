@@ -10,6 +10,7 @@ import logging
 import requests
 import configparser
 import cv2
+import random
 from datetime import datetime
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
@@ -28,6 +29,7 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
+# fix the pyautogui.click on location of image to only click if the image is found
 # add zoombot to seperate thread from the telegram bot to allow
 # for graceful exit
 
@@ -300,24 +302,25 @@ def joinzoommeeting(info):
                 str(mypath / "images" / "meetingyes.png"))
             pyautogui.click(yes)
         time.sleep(3)
-        pyautogui.click(
-            pyautogui.locateCenterOnScreen(
-                str(mypath / "images" / "joinmeeting.png"))
-        )
+        joinmeeting = pyautogui.locateCenterOnScreen(
+            str(mypath / "images" / "joinmeeting.png"))
+        if joinmeeting:
+            pyautogui.click(joinmeeting)
         time.sleep(3)
-        pyautogui.click(
-            pyautogui.locateCenterOnScreen(
-                str(mypath / "images" / "joincomaud.png"))
-        )
+        joincomaud = pyautogui.locateCenterOnScreen(
+            str(mypath / "images" / "joincomaud.png"))
+        if joincomaud:
+            pyautogui.click(joincomaud)
         time.sleep(2)
-        pyautogui.click(
-            pyautogui.locateCenterOnScreen(str(mypath / "images" / "mute.png"))
-        )
+        mute = pyautogui.locateCenterOnScreen(
+            str(mypath / "images" / "mute.png"))
+        if mute:
+            pyautogui.click(mute)
         time.sleep(1)
-        pyautogui.click(
-            pyautogui.locateCenterOnScreen(
-                str(mypath / "images" / "fullscreen.png"))
-        )
+        fullscreen = pyautogui.locateCenterOnScreen(
+            str(mypath / "images" / "fullscreen.png"))
+        if fullscreen:
+            pyautogui.click(fullscreen)
         winlist = pyautogui.getAllTitles()
         win = pyautogui.getWindowsWithTitle("Zoom Meeting")
         if iszoomopen():
@@ -443,6 +446,12 @@ def shutit(update, context):
     os.system(f"shutdown /s /t 0")
 
 
+def workout(update, context):
+
+    workouts = ["Justin Workout", "Coco Workout", "8 Minute Abs"]
+    sendmessage(f"Today your core workout is:\n{random.choice(workouts)}")
+
+
 def checkbreakoutroom():
     loc = pyautogui.locateCenterOnScreen(
         str(mypath / "images" / "join.png"), confidence=0.6)
@@ -530,6 +539,7 @@ def main():
     dp.add_handler(CommandHandler("screen", sendscreenshot))
     dp.add_handler(CommandHandler("cs", cs))
     dp.add_handler(CommandHandler("webcam", sendwebcamscr))
+    dp.add_handler(CommandHandler("workout", workout))
     dp.add_handler(CommandHandler("sch", mybot.sendinfo, pass_args=True))
     # dp.add_handler(CommandHandler("shutdown", shutit))
     # on noncommand i.e message - echo the message on Telegram
