@@ -29,10 +29,11 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
-# fix the pyautogui.click on location of image to only click if the image is found
+# allow user to use program without telegram bot
+# should be able to get away with this as sendmessage function looks to see if it has api/chat key
+# same with sendphoto, need to only run bot specific commands if api key is present
 # add zoombot to seperate thread from the telegram bot to allow
 # for graceful exit
-
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
@@ -345,7 +346,10 @@ def joinzoommeeting(info):
 
 def iskeypresent():
     if "api_key" in globals():
-        return True
+        if str(0) in {api_key, chat_id}:
+            return False
+        else:
+            return True
     else:
         return False
 
@@ -528,23 +532,29 @@ def main():
     chat_id = config["Telegram Info"]["userid"]
     api_key = config["Telegram Info"]["api_key"]
     joinnewmeeting = config.getboolean("Options", "joinnewmeeting")
-    updater = Updater(api_key, use_context=True)
+    if str(0) in {chat_id, api_key}:
+        pyautogui.alert(text='The chat_id and api_key has not been filled out, please fill out the config.ini as described in the README.\nThen reopen the program',
+                        title='Config Must be Filled out', button='OK')
+    # if config has not been filled out pop up message box and tell user
+    # what needs to be filled out
+    elif iskeypresent():
+        updater = Updater(api_key, use_context=True)
 
-    # Get the dispatcher to register handlers
-    dp = updater.dispatcher
+        # Get the dispatcher to register handlers
+        dp = updater.dispatcher
 
+        # on different commands - answer in Telegram
+        # dp.add_handler(CommandHandler("openzoom", openzoom))
+        dp.add_handler(CommandHandler("screen", sendscreenshot))
+        dp.add_handler(CommandHandler("cs", cs))
+        dp.add_handler(CommandHandler("webcam", sendwebcamscr))
+        dp.add_handler(CommandHandler("workout", workout))
+        dp.add_handler(CommandHandler("sch", mybot.sendinfo, pass_args=True))
+        # dp.add_handler(CommandHandler("shutdown", shutit))
+        # on noncommand i.e message - echo the message on Telegram
+        dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
+        updater.start_polling()
     mybot = ZoomBot()
-    # on different commands - answer in Telegram
-    # dp.add_handler(CommandHandler("openzoom", openzoom))
-    dp.add_handler(CommandHandler("screen", sendscreenshot))
-    dp.add_handler(CommandHandler("cs", cs))
-    dp.add_handler(CommandHandler("webcam", sendwebcamscr))
-    dp.add_handler(CommandHandler("workout", workout))
-    dp.add_handler(CommandHandler("sch", mybot.sendinfo, pass_args=True))
-    # dp.add_handler(CommandHandler("shutdown", shutit))
-    # on noncommand i.e message - echo the message on Telegram
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, help))
-    updater.start_polling()
     while True:
         if iszoomopen():
             checkbreakoutroom()
