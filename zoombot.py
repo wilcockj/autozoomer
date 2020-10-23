@@ -424,7 +424,7 @@ If you type /sch you will get the message of your schedule sent to you.''')
     """
     sendmessage(
         """There are a few commands with this bot\nIf you type /screen you will be sent a picture of your desktop
-If you type /sch you will get the message of your schedule sent to you.\nYou can also send a day example (/sch monday) and get sent your schedule for monday"""
+If you type /sch you will get the message of your schedule sent to you.\nYou can also send a day example (/sch monday or /sch mon) and get sent your schedule for monday"""
     )
     # update.message.reply_text('''Unauthenticated User''')
 
@@ -452,8 +452,8 @@ def shutit(update, context):
 @ authenticator
 def workout(update, context):
 
-    workouts = ["Justin Workout", "Coco Workout", "8 Minute Abs"]
-    sendmessage(f"Today your core workout is:\n{random.choice(workouts)}")
+    workouts = ["*Justin Workout*", "*Coco Workout*", "*8 Minute Abs*"]
+    update.message.reply_text(f"Today your core workout is:\n{random.choice(workouts)}", parse_mode='MarkdownV2')
 
 
 def checkbreakoutroom():
