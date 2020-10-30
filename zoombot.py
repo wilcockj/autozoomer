@@ -29,10 +29,8 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
-# should be able to get away with this as sendmessage function looks to see if it has api/chat key
-# same with sendphoto, need to only run bot specific commands if api key is present
-# add zoombot to seperate thread from the telegram bot to allow
-# for graceful exit
+# add telegram bot on another thread to exit gracefully
+# need to fix if excel row is empty
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
@@ -123,14 +121,16 @@ class ZoomBot:
         zoomdata = []
         loopdata = []
         for x in range(2, numofrows + 1):
+
             if sheet.cell(row=x, column=1).value is not None:
                 zoomdata.append([])
             for y in range(1, numofcols + 1):
+                print(sheet.cell(row=x,column=y).value)
                 cellvalue = sheet.cell(row=x, column=y).value
                 if y == 1 and cellvalue is None:
                     break
                 else:
-                    zoomdata[x - 2].append(cellvalue)
+                    zoomdata[len(zoomdata)-1].append(cellvalue)
         return zoomdata
 
     def timefixer(self, mytime):
