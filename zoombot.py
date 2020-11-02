@@ -125,12 +125,11 @@ class ZoomBot:
             if sheet.cell(row=x, column=1).value is not None:
                 zoomdata.append([])
             for y in range(1, numofcols + 1):
-                print(sheet.cell(row=x,column=y).value)
                 cellvalue = sheet.cell(row=x, column=y).value
                 if y == 1 and cellvalue is None:
                     break
                 else:
-                    zoomdata[len(zoomdata)-1].append(cellvalue)
+                    zoomdata[len(zoomdata) - 1].append(cellvalue)
         return zoomdata
 
     def timefixer(self, mytime):
@@ -453,7 +452,8 @@ def shutit(update, context):
 def workout(update, context):
 
     workouts = ["*Justin Workout*", "*Coco Workout*", "*8 Minute Abs*"]
-    update.message.reply_text(f"Today your core workout is:\n{random.choice(workouts)}", parse_mode='MarkdownV2')
+    update.message.reply_text(
+        f"Today your core workout is:\n{random.choice(workouts)}", parse_mode='MarkdownV2')
 
 
 def checkbreakoutroom():
