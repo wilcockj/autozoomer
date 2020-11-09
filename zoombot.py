@@ -29,6 +29,7 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
+# getalltitles etc. does not work with linux must find alternative or remove functionality
 # add telegram bot on another thread to exit gracefully
 # need to fix if excel row is empty
 # add functionality for consenting to being recorded
