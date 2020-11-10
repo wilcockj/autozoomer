@@ -458,7 +458,7 @@ def workout(update, context):
 
 def checkbreakoutroom():
     loc = pyautogui.locateCenterOnScreen(
-        str(mypath / "images" / "join.png"), confidence=0.6)
+        str(mypath / "images" / "join.png"), confidence=0.75)
     if loc:
         sendmessage("Trying to join breakout meeting")
         logging.info(loc)
