@@ -29,6 +29,7 @@ mypath = pathlib.Path(parent)
 config = configparser.ConfigParser()
 
 # TODO
+# getalltitles etc. does not work with linux must find alternative or remove functionality
 # add telegram bot on another thread to exit gracefully
 # need to fix if excel row is empty
 # add functionality for consenting to being recorded
@@ -125,12 +126,11 @@ class ZoomBot:
             if sheet.cell(row=x, column=1).value is not None:
                 zoomdata.append([])
             for y in range(1, numofcols + 1):
-                print(sheet.cell(row=x,column=y).value)
                 cellvalue = sheet.cell(row=x, column=y).value
                 if y == 1 and cellvalue is None:
                     break
                 else:
-                    zoomdata[len(zoomdata)-1].append(cellvalue)
+                    zoomdata[len(zoomdata) - 1].append(cellvalue)
         return zoomdata
 
     def timefixer(self, mytime):
@@ -453,12 +453,17 @@ def shutit(update, context):
 def workout(update, context):
 
     workouts = ["*Justin Workout*", "*Coco Workout*", "*8 Minute Abs*"]
-    update.message.reply_text(f"Today your core workout is:\n{random.choice(workouts)}", parse_mode='MarkdownV2')
+    update.message.reply_text(
+        f"Today your core workout is:\n{random.choice(workouts)}", parse_mode='MarkdownV2')
 
 
 def checkbreakoutroom():
     loc = pyautogui.locateCenterOnScreen(
+<<<<<<< HEAD
         str(mypath / "images" / "join.png"), confidence=0.75)
+=======
+        str(mypath / "images" / "join.png"), confidence=0.8)
+>>>>>>> b58804e91bd0e5f20dfa676f1a30e4be183e1dca
     if loc:
         sendmessage("Trying to join breakout meeting")
         logging.info(loc)
