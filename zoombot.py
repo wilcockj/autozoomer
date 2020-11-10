@@ -14,7 +14,7 @@ import random
 from datetime import datetime
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-
+from sys import platform
 chat_id = ""
 api_key = ""
 
@@ -321,21 +321,22 @@ def joinzoommeeting(info):
             str(mypath / "images" / "fullscreen.png"))
         if fullscreen:
             pyautogui.click(fullscreen)
-        winlist = pyautogui.getAllTitles()
-        win = pyautogui.getWindowsWithTitle("Zoom Meeting")
-        if iszoomopen():
-            win[0].maximize()
-            sendmessage(
-                f"\U00002705 You have successfully joined your meeting: {info[2].upper()}"
-            )
-        elif "Waiting for Host" in winlist:
-            sendmessage(
-                f"\U000023F3 Waiting for host to start the meeting: {info[2].upper()}"
-            )
-        else:
-            sendmessage(
-                f"\U0000274C ERROR: may have not joined meeting: {info[2].upper()}"
-            )
+        if platform == "win32":
+            winlist = pyautogui.getAllTitles()
+            win = pyautogui.getWindowsWithTitle("Zoom Meeting")
+            if iszoomopen():
+                win[0].maximize()
+                sendmessage(
+                    f"\U00002705 You have successfully joined your meeting: {info[2].upper()}"
+                )
+            elif "Waiting for Host" in winlist:
+                sendmessage(
+                    f"\U000023F3 Waiting for host to start the meeting: {info[2].upper()}"
+                )
+            else:
+                sendmessage(
+                    f"\U0000274C ERROR: may have not joined meeting: {info[2].upper()}"
+                )
         screenshot()
         print("Finished joining Meeting")
     except IndexError:
@@ -466,20 +467,21 @@ def checkbreakoutroom():
         logging.info("Found join button")
         pyautogui.click(loc)
         time.sleep(7)
-        winlist = pyautogui.getAllTitles()
-        window = ""
-        win = ""
-        strings = ["Room", "Breakout", "breakout", "room"]
-        for window in winlist:
-            if any(s in window for s in strings):
-                win = pyautogui.getWindowsWithTitle(window)
-                break
-        if win != "":
-            win[0].activate()
-            win[0].maximize()
-            sendmessage(
-                f"\U00002705 You have successfully joined your breakoutroom")
-            time.sleep(1)
+        if platform == 'win32':
+            winlist = pyautogui.getAllTitles()
+            window = ""
+            win = ""
+            strings = ["Room", "Breakout", "breakout", "room"]
+            for window in winlist:
+                if any(s in window for s in strings):
+                    win = pyautogui.getWindowsWithTitle(window)
+                    break
+            if win != "":
+                win[0].activate()
+                win[0].maximize()
+                sendmessage(
+                    f"\U00002705 You have successfully joined your breakoutroom")
+                time.sleep(1)
         screenshot()
 
 
