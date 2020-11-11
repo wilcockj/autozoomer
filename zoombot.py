@@ -15,6 +15,8 @@ from datetime import datetime
 from subprocess import Popen, PIPE
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from sys import platform
+import pyscreeze
+import subprocess
 chat_id = ""
 api_key = ""
 
@@ -393,9 +395,12 @@ def openzoom(update, context):
 
 def screenshot():
     logging.info("Sending screenshot to telegram")
-    im = pyautogui.screenshot('scrshot.png')
-    sendphoto(str(mypath / "scrshot.png"))
-
+    if platform == 'win32':
+        im = pyautogui.screenshot('scrshot.png')
+        sendphoto(str(mypath / "scrshot.png"))
+    else:
+        subprocess.call(['scrot','-o','-z','scrshot.png'])
+        sendphoto(str(mypath / "scrshot.png"))
 
 @ authenticator
 def sendscreenshot(update, context):
@@ -494,13 +499,15 @@ def logcurtime():
 
 
 def iszoomopen():
-    strings = ["Zoom Meeting"]
-    winlist = pyautogui.getAllTitles()
-    for window in winlist:
-        if any(s in window for s in strings):
-            return True
-    return False
-
+    if platform == 'win32':
+        strings = ["Zoom Meeting"]
+        winlist = pyautogui.getAllTitles()
+        for window in winlist:
+            if any(s in window for s in strings):
+                return True
+        return False
+    else:
+        return True
 
 def checkforquiz():
     buttonlist = list(pyautogui.locateAllOnScreen(
