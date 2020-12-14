@@ -2,3 +2,15 @@ pywutil.exe
 config.ini
 zoombot.pyw
 scrshot.png
+/Scripts
+/Lib
+/Include
+/dist
+/build
+/__pycache__
+/pyvenv.cfg
+/zoombot.spec
+/webcam.png
+/thing.bat
+*~
+/images/poll.png
