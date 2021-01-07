@@ -136,6 +136,13 @@ class ZoomBot:
                     break
                 else:
                     zoomdata[len(zoomdata) - 1].append(cellvalue)
+        if len(zoomdata) == 0:
+            pyautogui.alert(
+                text=f"The class schedule has not been filled out.\nFill out the schedule in {excelpath}\nThen reopen the program",
+                title="Schedule must be filled out",
+                button="OK",
+            )
+            exit()
         return zoomdata
 
     def timefixer(self, mytime):
@@ -394,7 +401,7 @@ def makeconfig():
     if not os.path.exists("config.ini"):
         print("Making config file")
         config["Telegram Info"] = {"userid": "0", "api_key": "0"}
-        config["Options"] = {"joinnewmeeting": "False"}
+        config["Options"] = {"joinnewmeeting": "False", "answerquiz": "False"}
         with open("config.ini", "w") as configfile:
             config.write(configfile)
     else:
@@ -566,6 +573,7 @@ def main():
     chat_id = config["Telegram Info"]["userid"]
     api_key = config["Telegram Info"]["api_key"]
     joinnewmeeting = config.getboolean("Options", "joinnewmeeting")
+    autoanswerquiz = config.getboolean("Options", "answerquiz")
 
     if str(0) in {chat_id, api_key}:
         # pyautogui.alert(text='The chat_id and api_key has not been filled out, please fill out the config.ini as described in the README.\nThen reopen the program',
@@ -599,7 +607,8 @@ def main():
     while True:
         if iszoomopen():
             checkbreakoutroom()
-            checkforquiz()
+            if answerquiz:
+                checkforquiz()
         logcurtime()
         schedule.run_pending()
         time.sleep(5)
