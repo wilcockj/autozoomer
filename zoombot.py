@@ -9,7 +9,8 @@ import re
 import logging
 import requests
 import configparser
-import cv2
+
+# import cv2
 import random
 from datetime import datetime
 from subprocess import Popen, PIPE, REALTIME_PRIORITY_CLASS
@@ -433,6 +434,7 @@ def sendscreenshot(update, context):
     screenshot()
 
 
+"""
 @authenticator
 def sendwebcamscr(update, context):
     try:
@@ -442,6 +444,7 @@ def sendwebcamscr(update, context):
         sendphoto(str(mypath / "webcam.png"))
     except cv2.error:
         sendmessage("Unable to access Webcam")
+"""
 
 
 def help(update, context):
@@ -599,7 +602,7 @@ def main():
         # dp.add_handler(CommandHandler("openzoom", openzoom))
         dp.add_handler(CommandHandler("screen", sendscreenshot))
         dp.add_handler(CommandHandler("cs", cs))
-        dp.add_handler(CommandHandler("webcam", sendwebcamscr))
+        # dp.add_handler(CommandHandler("webcam", sendwebcamscr))
         dp.add_handler(CommandHandler("workout", workout))
         dp.add_handler(CommandHandler("sch", mybot.sendinfo, pass_args=True))
         # dp.add_handler(CommandHandler("shutdown", shutit))
