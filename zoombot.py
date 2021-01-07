@@ -12,7 +12,7 @@ import configparser
 import cv2
 import random
 from datetime import datetime
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, REALTIME_PRIORITY_CLASS
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from sys import platform
 import pyscreeze
@@ -34,11 +34,10 @@ config = configparser.ConfigParser()
 # TODO
 # getalltitles etc. does not work with linux must find alternative or remove functionality
 # add telegram bot on another thread to exit gracefully
-# need to fix if excel row is empty
 # add functionality for consenting to being recorded
 # implement Start Date and End Date only join meetings during that interval
 # add functionality to connect a prerecorded video to the meeting
-# add abbreviations for days in /sch {day} command
+# add no excel doc handling in loadexcelfile
 
 # add option to make bot fully autonomous, needs to click button to join meeting that it is already in or leave meetings once they are finished
 def authenticator(func):
@@ -120,7 +119,11 @@ class ZoomBot:
 
     def loadexcelfile(self):
         excelpath = mypath / "docs" / "schedule.xlsx"
-        wb = load_workbook(excelpath)
+        if excelpath.is_file():
+            wb = load_workbook(excelpath)
+        else:
+            # handle error and create template doc
+            pass
         sheet = wb["Sheet1"]
         numofcols = sheet.max_column
         numofrows = sheet.max_row
