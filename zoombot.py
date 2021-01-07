@@ -358,6 +358,7 @@ def iskeypresent():
 
 def sendphoto(filepath):
     if iskeypresent():
+        logging.info("Sending screenshot to telegram")
         url = f"https://api.telegram.org/bot{api_key}/sendPhoto"
         data = {"chat_id": chat_id}
         files = {"photo": open(filepath, "rb")}
@@ -394,7 +395,6 @@ def openzoom(update, context):
 
 
 def screenshot():
-    logging.info("Sending screenshot to telegram")
     if platform == 'win32':
         im = pyautogui.screenshot('scrshot.png')
         sendphoto(str(mypath / "scrshot.png"))
