@@ -146,7 +146,7 @@ class ZoomBot:
                 title="Schedule must be filled out",
                 button="OK",
             )
-            exit()
+            quit)
         return zoomdata
 
     def timefixer(self, mytime):
@@ -613,7 +613,7 @@ def main():
     while True:
         if iszoomopen():
             checkbreakoutroom()
-            if answerquiz:
+            if autoanswerquiz:
                 checkforquiz()
         logcurtime()
         schedule.run_pending()
