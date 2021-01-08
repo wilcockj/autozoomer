@@ -146,7 +146,7 @@ class ZoomBot:
                 title="Schedule must be filled out",
                 button="OK",
             )
-            quit)
+            quit()
         return zoomdata
 
     def timefixer(self, mytime):
