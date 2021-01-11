@@ -16,6 +16,7 @@ from datetime import datetime
 from subprocess import Popen, PIPE, REALTIME_PRIORITY_CLASS
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 from sys import platform
+import sys
 import pyscreeze
 import subprocess
 
@@ -41,6 +42,8 @@ config = configparser.ConfigParser()
 # add no excel doc handling in loadexcelfile
 
 # add option to make bot fully autonomous, needs to click button to join meeting that it is already in or leave meetings once they are finished
+
+
 def authenticator(func):
     def helper(x, y):
         if str(x.message.chat_id) == str(chat_id):
@@ -129,7 +132,6 @@ class ZoomBot:
         numofcols = sheet.max_column
         numofrows = sheet.max_row
         zoomdata = []
-        loopdata = []
         for x in range(2, numofrows + 1):
 
             if sheet.cell(row=x, column=1).value is not None:
@@ -146,7 +148,7 @@ class ZoomBot:
                 title="Schedule must be filled out",
                 button="OK",
             )
-            quit()
+            sys.exit()
         return zoomdata
 
     def timefixer(self, mytime):
@@ -388,7 +390,7 @@ def sendphoto(filepath):
         url = f"https://api.telegram.org/bot{api_key}/sendPhoto"
         data = {"chat_id": chat_id}
         files = {"photo": open(filepath, "rb")}
-        r = requests.post(url, files=files, data=data)
+        requests.post(url, files=files, data=data)
 
 
 def sendmessage(mymessage):
@@ -416,13 +418,14 @@ def makeconfig():
 def openzoom(update, context):
     update.message.reply_text("Trying to Open Zoom")
     proc = Popen(r"C:\Users\James\AppData\Roaming\Zoom\bin\zoom.exe")
+    logging.info(proc)
     time.sleep(7)
     screenshot()
 
 
 def screenshot():
     if platform == "win32":
-        im = pyautogui.screenshot("scrshot.png")
+        pyautogui.screenshot("scrshot.png")
         sendphoto(str(mypath / "scrshot.png"))
     else:
         subprocess.call(["scrot", "-o", "-z", "scrshot.png"])
@@ -585,7 +588,7 @@ def main():
         # pyautogui.alert(text='The chat_id and api_key has not been filled out, please fill out the config.ini as described in the README.\nThen reopen the program',
         #                title='Config Must be Filled out', button='OK')
         print(
-            "The chat_id and api_key has not been filled out, if you want to have the telegram bot please fill out the config.ini as described in the README.\nThen reopen the program\n"
+            "The chat_id and api_key has not been filled out, if you want to have the telegram bot please fill out the config.ini as described in the README.\n"
         )
 
     # if config has not been filled out pop up message box and tell user
