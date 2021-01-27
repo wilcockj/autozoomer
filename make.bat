@@ -1,6 +1,6 @@
 @echo off
 
-pyinstaller --onefile zoombot.py --noconsole --exclude-module matplotlib ^
+pyinstaller --onefile zoombot.py --exclude-module matplotlib ^
                            --exclude-module scipy ^
                            --exclude-module setuptools ^
                            --exclude-module hook ^
