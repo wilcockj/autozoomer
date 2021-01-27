@@ -152,7 +152,7 @@ class ZoomBot:
         for x in range(len(self.meetingdata)):
             meetingnames.append(self.meetingdata[x][0])
             dayslist.append([])
-            zoomlinks.append(self.meetingdata[x][1].strip())
+            zoomlinks.append(str(self.meetingdata[x][1].strip()).replace(' ',''))
             if self.meetingdata[x][2] is not None:
                 zoompasses.append(self.meetingdata[x][2])
             else:
@@ -541,7 +541,6 @@ def main():
     # if config has not been filled out pop up message box and tell user
     # what needs to be filled out
     mybot = ZoomBot()
-
     if iskeypresent():
         updater = Updater(api_key, use_context=True)
 
